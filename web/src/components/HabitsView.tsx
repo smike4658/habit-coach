@@ -160,8 +160,9 @@ function HabitRow({
   onRestore: () => void
   saving: boolean
 }) {
+  // Vrací <div>, ne <li> — obal <li> dodává volající (spolu s inline formulářem).
   return (
-    <li className="flex items-center gap-3 px-5 py-3">
+    <div className="flex items-center gap-3 px-5 py-3">
       <span className="text-xl leading-none">{habit.emoji}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-sm font-semibold">
@@ -213,7 +214,7 @@ function HabitRow({
           </button>
         )}
       </div>
-    </li>
+    </div>
   )
 }
 

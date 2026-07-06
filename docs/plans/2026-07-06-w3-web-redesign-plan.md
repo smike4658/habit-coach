@@ -5,12 +5,29 @@ Motivace: současný web je funkční MVP, ale působí jako "AI-generated page"
 vypadá jako reálný produkt). Cíl: vlastní vizuální identita, lepší název, feature parity se
 zavedenými trackery.
 
+## Orchestrace (jak se plán vykonává)
+
+Jedna **orchestrační session** v repu habit-coach (hlavní chat, drobný kontext) spouští kroky
+jako **subagenty přes Agent tool s parametrem `model` podle tabulky níže** — Michal modely
+neřeší, řídí je tento plán. Subagent = čerstvé kontextové okno; kontext se předává výhradně
+přes commitnuté soubory (proto každý krok končí commit + push).
+
+| Krok | model subagenta | interakce s Michalem |
+|---|---|---|
+| W3.1 výzkum | `sonnet` (uvnitř smí spawnovat `haiku` na scraping) | žádná |
+| W3.2 název | `sonnet` | ano — kandidáty předloží ORCHESTRÁTOR, ne subagent |
+| W3.3 design | `fable` (příp. `opus`) | ano — výběr směru přes orchestrátor |
+| W3.4 implementace (4 dávky) | `sonnet`, každá dávka zvlášť | jen přejímka dávky |
+| W3.5 e2e + release | `sonnet` | jen přejímka |
+
+Pravidlo pro interaktivní kroky: subagent NEUMÍ mluvit s Michalem — vygeneruje podklady
+(kandidáty názvů, HTML mockupy), vrátí shrnutí, orchestrátor je předloží Michalovi
+(AskUserQuestion / odkazy na soubory), rozhodnutí zapíše a předá dalšímu subagentovi v promptu.
+
 ## Pravidla pro celou fázi
 
-- **Každý krok = samostatné kontextové okno** (nová Claude Code session v repu habit-coach,
-  nebo subagent). Kickoff prompt je u každého kroku. Výstupy se commitují — další krok na nich staví.
-- **Modely šetřit:** Fable/Opus jen na design direction a architekturu; výzkum a mechanická
-  implementace = Sonnet; hromadné čtení/scraping = Haiku subagenti.
+- Kickoff prompty u kroků slouží jako prompt subagenta (orchestrátor je předá Agent tool
+  s příslušným modelem). Nouzový režim: každý krok jde spustit i ručně v novém okně.
 - **Nástroje:** context7 MCP (docs knihoven — už nainstalováno), Playwright MCP (ověřování UI
   v prohlížeči), magic MCP / 21st.dev (inspirace komponent), skill `frontend-design` (design
   quality), skill `superpowers` (TDD, plány). Před krokem 3 ověřit, že jsou v session dostupné.
@@ -20,7 +37,7 @@ zavedenými trackery.
 
 ## Krok W3.1 — Výzkum konkurence a feature matrix
 
-- **Okno/model:** samostatná session, Sonnet; scraping store listingů přes Haiku subagenty.
+- **Subagent:** `sonnet`; scraping store listingů přes vnořené `haiku` agenty.
 - **Vstup:** docs/2026-07-06-market-scan.md (AI koučové už zmapovaní — teď jde o KLASICKÉ trackery).
 - **Úkol:** rozebrat zavedené appky: Habitify, Loop Habit Tracker, HabitNow, Streaks (iOS),
   Way of Life, Everyday, HabitKit, Habitica (+ HabitBee jako UX benchmark). Z každé: seznam
@@ -36,7 +53,7 @@ zavedenými trackery.
 
 ## Krok W3.2 — Název a značka (s Michalem, levné)
 
-- **Okno/model:** krátká interaktivní session, Sonnet stačí.
+- **Subagent:** `sonnet` vygeneruje kandidáty + ověří kolize; VÝBĚR dělá Michal v orchestrátoru.
 - **Úkol:** brainstorm názvů ve stylu "Kafkanaut" (hravé, česko-anglické, zapamatovatelné),
   ověřit kolize (existující appky, domény, GitHub). Vybírá Michal. Poznámka: "Habit Coach"
   koliduje s habitcoach.ai (viz market scan).
@@ -50,7 +67,7 @@ zavedenými trackery.
 
 ## Krok W3.3 — Design systém a informační architektura
 
-- **Okno/model:** samostatná session, **silný model (Fable/Opus)** — tady se rozhoduje vzhled.
+- **Subagent:** **`fable`** — jediný krok se silným modelem; tady se rozhoduje vzhled.
   Skill `frontend-design` povinně; magic MCP na inspiraci; NEPOUŽÍVAT generické ikon sety
   (lucide/heroicons/font-awesome) — vlastní SVG ikony v duchu značky.
 - **Vstup:** feature matrix (W3.1), název (W3.2), stávající "ink on paper" směr (může se zahodit
@@ -67,7 +84,7 @@ zavedenými trackery.
 
 ## Krok W3.4 — Implementace (po dávkách, Sonnet)
 
-- **Okno/model:** 2–4 sessions po dávkách, Sonnet; TDD (superpowers); Playwright MCP na
+- **Subagent:** `sonnet`, každá dávka = samostatný subagent; TDD (superpowers); Playwright MCP na
   vizuální ověření každé dávky; context7 na docs (React, Tailwind v4, supabase-js).
 - **Dávky (každá = commit + push + ověření v prohlížeči):**
   1. Design systém do kódu: tokens v index.css, základní komponenty, nová navigace, redesign
@@ -84,7 +101,7 @@ zavedenými trackery.
 
 ## Krok W3.5 — E2E testy + release
 
-- **Okno/model:** Sonnet.
+- **Subagent:** `sonnet`.
 - **Úkol:** Playwright e2e suite (login, check-in flow, týden, historie) v CI (deploy.yml už
   testy spouští — přidat e2e job); finální deploy; týden reálného používání → poznámky do
   BACKLOG.md; teprve pak rozhodnutí o návratu k fázi 1b.

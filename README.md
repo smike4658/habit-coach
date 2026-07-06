@@ -16,7 +16,7 @@ habit-coach/
 
 ## Web dashboard (fáze W)
 
-Read-only dashboard nad repem `selfimprovement` přes GitHub Contents API: dnešní plán z `plans/`, týdenní tabulka, streaky z `log/`.
+Dashboard nad repem `selfimprovement` přes GitHub Contents API: dnešní plán z `plans/`, týdenní tabulka, streaky z `log/`. Check-in (✅/❌/➖ + věta dne) zapisuje commitem do `log/YYYY-MM.md`.
 
 ```bash
 cd web
@@ -24,4 +24,4 @@ npm install
 npm run dev
 ```
 
-**Token:** repo `selfimprovement` je private, takže i čtení vyžaduje fine-grained PAT (GitHub → Settings → Developer settings → Fine-grained tokens; scope: jen repo `selfimprovement`, permission *Contents: Read-only* — pro W2 check-in později Read/Write). Token se zadává na úvodní obrazovce aplikace a ukládá do `localStorage` v prohlížeči.
+**Token:** repo `selfimprovement` je private, takže čtení i check-in vyžadují fine-grained PAT (GitHub → Settings → Developer settings → Fine-grained tokens; scope: jen repo `selfimprovement`, permission *Contents: Read and write*). Token se zadává na úvodní obrazovce aplikace a ukládá do `localStorage` v prohlížeči.

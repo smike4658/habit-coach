@@ -5,13 +5,33 @@ import { TodayCard } from './components/TodayCard'
 import { WeekTable } from './components/WeekTable'
 import { useDashboard } from './lib/useDashboard'
 import { isoWeekId } from './lib/dates'
+import { submitCheckin, submitSentence } from './lib/checkinService'
+import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
   const { data, loading, error, unauthorized, refresh } = useDashboard(token)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const now = new Date()
+
+  const mutate = (fn: () => Promise<void>) => {
+    if (!token) return
+    setSaving(true)
+    setSaveError(null)
+    fn()
+      .then(refresh)
+      .catch((e: unknown) => setSaveError(e instanceof Error ? e.message : 'Zápis selhal'))
+      .finally(() => setSaving(false))
+  }
+
+  const handleCheckin = (column: string, status: CheckinStatus) =>
+    mutate(() => submitCheckin(token!, new Date(), column, status))
+
+  const handleSentence = (sentence: string) =>
+    mutate(() => submitSentence(token!, new Date(), sentence))
 
   if (!token) {
     return (
@@ -80,13 +100,27 @@ export default function App() {
           </div>
         )}
 
+        {saveError && (
+          <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
+            Zápis check-inu selhal: {saveError}. Zkontroluj, že token má oprávnění{' '}
+            <em>Contents: Read and write</em>.
+          </div>
+        )}
+
         {loading && !data && <p className="text-sm text-ink-faint">Načítám deník…</p>}
 
         {data && (
           <>
             {data.plan ? (
               <>
-                <TodayCard plan={data.plan} today={data.today} todayLog={data.todayLog} />
+                <TodayCard
+                  plan={data.plan}
+                  today={data.today}
+                  todayLog={data.todayLog}
+                  onCheckin={handleCheckin}
+                  onSentence={handleSentence}
+                  saving={saving}
+                />
                 <StreakCards streaks={data.streaks} />
                 <WeekTable plan={data.plan} logDaysByDate={data.logDays} now={now} />
                 <p className="text-center font-mono text-[10px] text-ink-faint">

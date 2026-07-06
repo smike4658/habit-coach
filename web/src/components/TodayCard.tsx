@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CheckinStatus, LogDay, PlanDay, WeekPlan } from '../lib/markdown'
 
 const habitEmoji = (text: string) => text.match(/^\p{Extended_Pictographic}/u)?.[0] ?? null
@@ -26,21 +27,31 @@ function Linkified({ text }: { text: string }) {
   )
 }
 
-const STATUS_BADGE: Record<CheckinStatus, { label: string; cls: string }> = {
-  done: { label: '✅ splněno', cls: 'bg-done-soft text-done' },
-  missed: { label: '❌ vynecháno', cls: 'bg-miss-soft text-miss' },
-  unplanned: { label: '➖ neplánováno', cls: 'bg-paper-warm text-ink-faint' },
-}
+const STATUS_BUTTONS: { status: CheckinStatus; mark: string; activeCls: string }[] = [
+  { status: 'done', mark: '✅', activeCls: 'bg-done-soft ring-2 ring-done' },
+  { status: 'missed', mark: '❌', activeCls: 'bg-miss-soft ring-2 ring-miss' },
+  { status: 'unplanned', mark: '➖', activeCls: 'bg-paper-warm ring-2 ring-ink-faint' },
+]
 
 export function TodayCard({
   plan,
   today,
   todayLog,
+  onCheckin,
+  onSentence,
+  saving,
 }: {
   plan: WeekPlan
   today: PlanDay | null
   todayLog: LogDay | null
+  onCheckin: (column: string, status: CheckinStatus) => void
+  onSentence: (sentence: string) => void
+  saving: boolean
 }) {
+  const [sentence, setSentence] = useState<string | null>(null)
+  const savedSentence = todayLog?.sentence ?? ''
+  const draft = sentence ?? savedSentence
+
   return (
     <section className="rise" style={{ animationDelay: '0.05s' }}>
       <h2 className="font-mono text-xs tracking-widest text-ink-faint uppercase">Dnes</h2>
@@ -55,7 +66,6 @@ export function TodayCard({
             {plan.columns.map((col, i) => {
               const item = today.items[i]
               const status = statusForColumn(col, todayLog)
-              const badge = status ? STATUS_BADGE[status] : null
               return (
                 <li key={col} className="flex items-start gap-3 px-5 py-4">
                   <span className="text-xl leading-6">{habitEmoji(col) ?? '•'}</span>
@@ -67,15 +77,21 @@ export function TodayCard({
                       {col.replace(/^\S+\s*/, '')}
                     </div>
                   </div>
-                  {item && (
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        badge ? badge.cls : 'bg-marker/30 text-ink-soft'
-                      }`}
-                    >
-                      {badge ? badge.label : 'čeká'}
-                    </span>
-                  )}
+                  <div className="flex shrink-0 gap-1.5">
+                    {STATUS_BUTTONS.map((b) => (
+                      <button
+                        key={b.status}
+                        disabled={saving}
+                        onClick={() => onCheckin(col, b.status)}
+                        title={b.status}
+                        className={`rounded-lg px-2 py-1.5 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
+                          status === b.status ? b.activeCls : 'opacity-45 hover:opacity-100'
+                        }`}
+                      >
+                        {b.mark}
+                      </button>
+                    ))}
+                  </div>
                 </li>
               )
             })}
@@ -96,12 +112,33 @@ export function TodayCard({
             </div>
           </details>
         )}
-        {todayLog?.sentence && (
-          <p className="border-t border-line px-5 py-3 text-sm">
-            <span className="font-mono text-xs text-ink-faint">Věta dne: </span>
-            {todayLog.sentence}
-          </p>
-        )}
+        <form
+          className="flex items-center gap-2 border-t border-line px-5 py-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (draft.trim() && draft !== savedSentence) onSentence(draft.trim())
+          }}
+        >
+          <label className="shrink-0 font-mono text-xs text-ink-faint" htmlFor="sentence">
+            Věta dne
+          </label>
+          <input
+            id="sentence"
+            value={draft}
+            onChange={(e) => setSentence(e.target.value)}
+            placeholder="jedna věta o dnešku…"
+            className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm outline-none focus:border-line focus:bg-white/70"
+          />
+          {draft.trim() && draft !== savedSentence && (
+            <button
+              type="submit"
+              disabled={saving}
+              className="shrink-0 rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-paper active:scale-95 disabled:opacity-40"
+            >
+              Uložit
+            </button>
+          )}
+        </form>
       </div>
     </section>
   )

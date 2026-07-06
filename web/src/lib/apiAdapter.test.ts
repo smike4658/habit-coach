@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { weekResponseToDashboard } from './apiAdapter'
-import type { WeekResponse } from './apiAdapter'
+import { historyResponseToLogDays, weekResponseToDashboard } from './apiAdapter'
+import type { HistoryResponse, WeekResponse } from './apiAdapter'
 
 const WEEK: WeekResponse = {
   iso: '2026-W28',
@@ -86,5 +86,38 @@ describe('weekResponseToDashboard', () => {
   test('builds logDays for the week table', () => {
     const monday = dash.logDays.find((d) => d.date?.getDate() === 6)
     expect(monday?.entries.find((e) => e.habit.startsWith('💪'))?.status).toBe('done')
+  })
+})
+
+describe('historyResponseToLogDays', () => {
+  const HISTORY: HistoryResponse = {
+    from: '2026-04-06',
+    to: '2026-07-06',
+    habits: [
+      { slug: 'cviceni', name: 'Cvičení', emoji: '💪', is_reward: false },
+      { slug: 'cteni', name: 'Čtení', emoji: '📖', is_reward: false },
+    ],
+    checkins: [
+      { date: '2026-07-06', status: 'done', note: 'šlo to', slug: 'cviceni' },
+      { date: '2026-07-06', status: 'skipped', note: null, slug: 'cteni' },
+      { date: '2026-07-05', status: 'done', note: null, slug: 'cviceni' },
+    ],
+    streaks: [],
+  }
+
+  test('groups checkins by date into LogDay entries with web status names', () => {
+    const days = historyResponseToLogDays(HISTORY)
+    expect(days).toHaveLength(2)
+    const day6 = days.find((d) => d.date?.getDate() === 6)
+    expect(day6?.entries).toEqual([
+      { habit: '💪 Cvičení', status: 'done', note: 'šlo to' },
+      { habit: '📖 Čtení', status: 'missed', note: '' },
+    ])
+  })
+
+  test('sorts days chronologically', () => {
+    const days = historyResponseToLogDays(HISTORY)
+    expect(days[0].date?.getDate()).toBe(5)
+    expect(days[1].date?.getDate()).toBe(6)
   })
 })

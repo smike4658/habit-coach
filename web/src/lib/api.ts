@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Session } from '@supabase/supabase-js'
 import { toApiStatus } from './apiAdapter'
-import type { WeekResponse } from './apiAdapter'
+import type { HistoryResponse, WeekResponse } from './apiAdapter'
 import type { CheckinStatus } from './markdown'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -37,6 +37,10 @@ async function invoke<T>(name: string, options?: { body?: unknown; query?: strin
 
 export function getWeek(iso?: string): Promise<WeekResponse> {
   return invoke<WeekResponse>('week', { query: iso ? `?iso=${iso}` : '' })
+}
+
+export function getHistory(months = 3): Promise<HistoryResponse> {
+  return invoke<HistoryResponse>('history', { query: `?months=${months}` })
 }
 
 export function postCheckin(habitSlug: string, status: CheckinStatus, note?: string) {

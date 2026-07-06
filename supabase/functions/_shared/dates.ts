@@ -43,3 +43,8 @@ export function toIsoDate(date: Date): string {
   const d = String(date.getDate()).padStart(2, '0')
   return `${date.getFullYear()}-${m}-${d}`
 }
+
+/** Start date (inclusive) for a "last N months" history range, ending today. */
+export function historyRangeStart(today: Date, months: number): Date {
+  return new Date(today.getFullYear(), today.getMonth() - months, today.getDate())
+}

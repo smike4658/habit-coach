@@ -1,5 +1,13 @@
 import { assertEquals } from 'jsr:@std/assert'
-import { dayLabelFor, isoWeekId, logFileName, parseDayLabel, pragueToday, toIsoDate } from './dates.ts'
+import {
+  dayLabelFor,
+  historyRangeStart,
+  isoWeekId,
+  logFileName,
+  parseDayLabel,
+  pragueToday,
+  toIsoDate,
+} from './dates.ts'
 import { parseLog, parseWeekPlan } from './markdown.ts'
 import { setCheckin, setSentence } from './logEdit.ts'
 
@@ -18,6 +26,11 @@ Deno.test('dayLabelFor + parseDayLabel roundtrip', () => {
 Deno.test('pragueToday returns a date-only value', () => {
   const d = pragueToday(new Date('2026-07-06T23:30:00+02:00'))
   assertEquals(toIsoDate(d), '2026-07-06')
+})
+
+Deno.test('historyRangeStart goes back N months, handling year rollover', () => {
+  assertEquals(toIsoDate(historyRangeStart(new Date(2026, 6, 6), 3)), '2026-04-06')
+  assertEquals(toIsoDate(historyRangeStart(new Date(2026, 1, 15), 3)), '2025-11-15')
 })
 
 const WEEK_MD = `# Týden 1 — 2026-W28

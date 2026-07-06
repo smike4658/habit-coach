@@ -4,15 +4,27 @@ import { LoginGate } from './components/LoginGate'
 import { StreakCards } from './components/StreakCards'
 import { TodayCard } from './components/TodayCard'
 import { WeekTable } from './components/WeekTable'
+import { HistoryView } from './components/HistoryView'
 import { useDashboard } from './lib/useDashboard'
 import type { Dashboard } from './lib/useDashboard'
 import { useApiDashboard } from './lib/useApiDashboard'
+import { useHistory } from './lib/useHistory'
 import { apiMode, getSession, postCheckin, postSentence, supabase } from './lib/api'
 import { isoWeekId } from './lib/dates'
 import { submitCheckin, submitSentence } from './lib/checkinService'
 import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
+
+type Tab = 'today' | 'history'
+
+interface HistoryProps {
+  logDays: import('./lib/markdown').LogDay[] | null
+  loading: boolean
+  error: string | null
+  from: Date
+  to: Date
+}
 
 interface ViewProps {
   data: Dashboard | null
@@ -25,9 +37,35 @@ interface ViewProps {
   onLogout: () => void
   onCheckin: (column: string, status: CheckinStatus) => void
   onSentence: (sentence: string) => void
+  history: HistoryProps
+}
+
+function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'today', label: 'Dnes' },
+    { id: 'history', label: 'Historie' },
+  ]
+  return (
+    <nav className="mt-4 flex gap-1 border-b border-line">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          className={`-mb-px rounded-t-lg border border-b-0 px-4 py-2 text-sm font-semibold transition-colors ${
+            tab === t.id
+              ? 'border-line bg-white/60 text-ink'
+              : 'border-transparent text-ink-faint hover:text-ink-soft'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </nav>
+  )
 }
 
 function DashboardView(p: ViewProps) {
+  const [tab, setTab] = useState<Tab>('today')
   const now = new Date()
   const formatted = new Intl.DateTimeFormat('cs-CZ', {
     weekday: 'long',
@@ -64,46 +102,60 @@ function DashboardView(p: ViewProps) {
         </div>
       </header>
 
-      <main className="mt-8 flex flex-col gap-8">
-        {p.error && (
-          <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
-            Načtení selhalo: {p.error} {p.errorExtra}
-          </div>
-        )}
-        {p.saveError && (
-          <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
-            Zápis check-inu selhal: {p.saveError}
-          </div>
-        )}
+      <TabNav tab={tab} onChange={setTab} />
 
-        {p.loading && !p.data && <p className="text-sm text-ink-faint">Načítám deník…</p>}
+      {tab === 'today' && (
+        <main className="mt-8 flex flex-col gap-8">
+          {p.error && (
+            <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
+              Načtení selhalo: {p.error} {p.errorExtra}
+            </div>
+          )}
+          {p.saveError && (
+            <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
+              Zápis check-inu selhal: {p.saveError}
+            </div>
+          )}
 
-        {p.data &&
-          (p.data.plan ? (
-            <>
-              <TodayCard
-                plan={p.data.plan}
-                today={p.data.today}
-                todayLog={p.data.todayLog}
-                onCheckin={p.onCheckin}
-                onSentence={p.onSentence}
-                saving={p.saving}
-              />
-              <StreakCards streaks={p.data.streaks} />
-              <WeekTable plan={p.data.plan} logDaysByDate={p.data.logDays} now={now} />
-              <p className="text-center font-mono text-[10px] text-ink-faint">
-                {p.data.plan.title}
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="rounded-xl border border-line bg-white/50 px-5 py-6 text-sm text-ink-soft">
-                Plán pro týden {isoWeekId(now)} zatím není k dispozici.
-              </div>
-              <StreakCards streaks={p.data.streaks} />
-            </>
-          ))}
-      </main>
+          {p.loading && !p.data && <p className="text-sm text-ink-faint">Načítám deník…</p>}
+
+          {p.data &&
+            (p.data.plan ? (
+              <>
+                <TodayCard
+                  plan={p.data.plan}
+                  today={p.data.today}
+                  todayLog={p.data.todayLog}
+                  onCheckin={p.onCheckin}
+                  onSentence={p.onSentence}
+                  saving={p.saving}
+                />
+                <StreakCards streaks={p.data.streaks} />
+                <WeekTable plan={p.data.plan} logDaysByDate={p.data.logDays} now={now} />
+                <p className="text-center font-mono text-[10px] text-ink-faint">
+                  {p.data.plan.title}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border border-line bg-white/50 px-5 py-6 text-sm text-ink-soft">
+                  Plán pro týden {isoWeekId(now)} zatím není k dispozici.
+                </div>
+                <StreakCards streaks={p.data.streaks} />
+              </>
+            ))}
+        </main>
+      )}
+
+      {tab === 'history' && (
+        <HistoryView
+          logDays={p.history.logDays}
+          loading={p.history.loading}
+          error={p.history.error}
+          from={p.history.from}
+          to={p.history.to}
+        />
+      )}
     </div>
   )
 }
@@ -122,6 +174,8 @@ function useMutation(refresh: () => void) {
   return { saving, saveError, mutate }
 }
 
+const HISTORY_MONTHS = 3
+
 /** Fáze 1a: dashboard nad Supabase API (přihlášení e-mailem). */
 function ApiApp() {
   const [authed, setAuthed] = useState<boolean | null>(null)
@@ -131,9 +185,16 @@ function ApiApp() {
 
   const { data, loading, error, refresh } = useApiDashboard(authed === true)
   const { saving, saveError, mutate } = useMutation(refresh)
+  const { logDays: historyLogDays, loading: historyLoading, error: historyError } = useHistory(
+    authed === true,
+    HISTORY_MONTHS,
+  )
 
   if (authed === null) return null
   if (!authed) return <LoginGate onLogin={() => setAuthed(true)} />
+
+  const now = new Date()
+  const historyFrom = new Date(now.getFullYear(), now.getMonth() - HISTORY_MONTHS, now.getDate())
 
   return (
     <DashboardView
@@ -149,6 +210,13 @@ function ApiApp() {
         if (slug) mutate(() => postCheckin(slug, status))
       }}
       onSentence={(sentence) => mutate(() => postSentence(sentence))}
+      history={{
+        logDays: historyLogDays,
+        loading: historyLoading,
+        error: historyError,
+        from: historyFrom,
+        to: now,
+      }}
     />
   )
 }
@@ -175,6 +243,11 @@ function GitHubApp() {
     setToken(null)
   }
 
+  const now = new Date()
+  // PAT mód: dashboard fetchuje jen aktuální + předchozí měsíc logu, historii stavíme z toho —
+  // víc netahat (viz W3.4 zadání).
+  const historyFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
   return (
     <DashboardView
       data={data}
@@ -193,6 +266,13 @@ function GitHubApp() {
       onLogout={clearToken}
       onCheckin={(column, status) => mutate(() => submitCheckin(token, new Date(), column, status))}
       onSentence={(sentence) => mutate(() => submitSentence(token, new Date(), sentence))}
+      history={{
+        logDays: data?.logDays ?? null,
+        loading,
+        error,
+        from: historyFrom,
+        to: now,
+      }}
     />
   )
 }

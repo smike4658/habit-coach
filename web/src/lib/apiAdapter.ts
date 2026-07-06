@@ -105,3 +105,40 @@ export function weekResponseToDashboard(week: WeekResponse, now: Date): Dashboar
     ),
   }
 }
+
+export interface HistoryResponse {
+  from: string
+  to: string
+  habits: { slug: string; name: string; emoji: string; is_reward: boolean }[]
+  checkins: { date: string; status: ApiStatus; note: string | null; slug: string }[]
+  streaks: {
+    slug: string
+    emoji: string
+    name: string
+    current_streak: number
+    missed_twice: boolean
+    is_reward: boolean
+  }[]
+}
+
+/** Přemapuje odpověď /history na LogDay[], stejný tvar dat jako GitHub log parsing. */
+export function historyResponseToLogDays(history: HistoryResponse): LogDay[] {
+  const habitKey = (slug: string) => {
+    const h = history.habits.find((x) => x.slug === slug)
+    return h ? `${h.emoji} ${h.name}` : slug
+  }
+
+  const byDate = new Map<string, LogDay>()
+  for (const c of history.checkins) {
+    if (!byDate.has(c.date)) {
+      byDate.set(c.date, { label: c.date, date: parseIsoDate(c.date), sentence: '', entries: [] })
+    }
+    byDate.get(c.date)!.entries.push({
+      habit: habitKey(c.slug),
+      status: toWebStatus(c.status),
+      note: c.note ?? '',
+    })
+  }
+
+  return [...byDate.values()].sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0))
+}

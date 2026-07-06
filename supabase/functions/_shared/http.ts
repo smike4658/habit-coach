@@ -23,6 +23,9 @@ export function handleOptions(req: Request): Response | null {
 export function requireUser(req: Request): Response | null {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.replace(/^Bearer\s+/i, '')
+  // Nový formát secret API key (cron wizard) — platnost už ověřila gateway,
+  // neplatný klíč se k funkci vůbec nedostane.
+  if (token.startsWith('sb_secret_')) return null
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     if (payload.role === 'authenticated' || payload.role === 'service_role') return null

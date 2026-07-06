@@ -9,3 +9,4 @@ Nápady mimo aktuální fázi (viz design §8 — scope creep jde sem, ne do spr
 
 ## Později / fáze 4
 - Konfigurovatelné data-repo (jiný uživatel = vlastní repo) — až s multi-user fází.
+- **Přejmenovat produkt** — „Habit Coach" koliduje s existujícím habitcoach.ai ($9–149/měs, proaktivní AI kouč). Viz docs/2026-07-06-market-scan.md. (2026-07-06)

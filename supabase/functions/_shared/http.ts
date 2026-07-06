@@ -17,14 +17,15 @@ export function handleOptions(req: Request): Response | null {
 
 /**
  * Single-user ochrana: verify_jwt pustí i anon key, proto navíc vyžadujeme
- * JWT přihlášeného uživatele (role=authenticated z Supabase Auth).
+ * JWT přihlášeného uživatele (role=authenticated z Supabase Auth), nebo
+ * service_role (cron joby přes pg_cron/pg_net).
  */
 export function requireUser(req: Request): Response | null {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.replace(/^Bearer\s+/i, '')
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
-    if (payload.role === 'authenticated') return null
+    if (payload.role === 'authenticated' || payload.role === 'service_role') return null
   } catch {
     // spadne níž na 401
   }

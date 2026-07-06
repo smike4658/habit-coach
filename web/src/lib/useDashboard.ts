@@ -12,6 +12,8 @@ export interface Dashboard {
   todayLog: LogDay | null
   logDays: LogDay[]
   streaks: Record<string, Streak>
+  /** API mód: mapování sloupce plánu na slug návyku (z /week items). */
+  slugByColumn?: Record<string, string | null>
 }
 
 interface State {

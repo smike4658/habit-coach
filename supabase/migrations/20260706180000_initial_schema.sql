@@ -77,6 +77,7 @@ select
   h.slug,
   h.emoji,
   h.name,
+  h.is_reward,
   coalesce(
     (
       select count(*)

@@ -5,10 +5,12 @@ import { StreakCards } from './components/StreakCards'
 import { TodayCard } from './components/TodayCard'
 import { WeekTable } from './components/WeekTable'
 import { HistoryView } from './components/HistoryView'
+import { HabitsView } from './components/HabitsView'
 import { useDashboard } from './lib/useDashboard'
 import type { Dashboard } from './lib/useDashboard'
 import { useApiDashboard } from './lib/useApiDashboard'
 import { useHistory } from './lib/useHistory'
+import { useHabits } from './lib/useHabits'
 import { apiMode, getSession, postCheckin, postSentence, supabase } from './lib/api'
 import { isoWeekId } from './lib/dates'
 import { submitCheckin, submitSentence } from './lib/checkinService'
@@ -16,7 +18,7 @@ import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
 
-type Tab = 'today' | 'history'
+type Tab = 'today' | 'history' | 'habits'
 
 interface HistoryProps {
   logDays: import('./lib/markdown').LogDay[] | null
@@ -24,6 +26,19 @@ interface HistoryProps {
   error: string | null
   from: Date
   to: Date
+}
+
+interface HabitsProps {
+  enabled: boolean
+  habits: import('./lib/apiAdapter').HabitViewModel[] | null
+  loading: boolean
+  error: string | null
+  saving: boolean
+  saveError: string | null
+  onCreate: (body: import('./lib/api').CreateHabitBody) => void
+  onUpdate: (body: import('./lib/api').PatchHabitBody) => void
+  onArchive: (slug: string) => void
+  onRestore: (slug: string) => void
 }
 
 interface ViewProps {
@@ -38,12 +53,14 @@ interface ViewProps {
   onCheckin: (column: string, status: CheckinStatus) => void
   onSentence: (sentence: string) => void
   history: HistoryProps
+  habits: HabitsProps
 }
 
 function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'today', label: 'Dnes' },
     { id: 'history', label: 'Historie' },
+    { id: 'habits', label: 'Návyky' },
   ]
   return (
     <nav className="mt-4 flex gap-1 border-b border-line">
@@ -156,6 +173,25 @@ function DashboardView(p: ViewProps) {
           to={p.history.to}
         />
       )}
+
+      {tab === 'habits' &&
+        (p.habits.enabled ? (
+          <HabitsView
+            habits={p.habits.habits}
+            loading={p.habits.loading}
+            error={p.habits.error}
+            saving={p.habits.saving}
+            saveError={p.habits.saveError}
+            onCreate={p.habits.onCreate}
+            onUpdate={p.habits.onUpdate}
+            onArchive={p.habits.onArchive}
+            onRestore={p.habits.onRestore}
+          />
+        ) : (
+          <div className="mt-8 rounded-xl border border-line bg-white/50 px-5 py-6 text-sm text-ink-soft">
+            Správa návyků vyžaduje API mód.
+          </div>
+        ))}
     </div>
   )
 }
@@ -189,6 +225,17 @@ function ApiApp() {
     authed === true,
     HISTORY_MONTHS,
   )
+  const {
+    habits,
+    loading: habitsLoading,
+    error: habitsError,
+    saving: habitsSaving,
+    saveError: habitsSaveError,
+    createHabit,
+    updateHabit,
+    archiveHabit,
+    restoreHabit,
+  } = useHabits(authed === true)
 
   if (authed === null) return null
   if (!authed) return <LoginGate onLogin={() => setAuthed(true)} />
@@ -216,6 +263,18 @@ function ApiApp() {
         error: historyError,
         from: historyFrom,
         to: now,
+      }}
+      habits={{
+        enabled: true,
+        habits,
+        loading: habitsLoading,
+        error: habitsError,
+        saving: habitsSaving,
+        saveError: habitsSaveError,
+        onCreate: createHabit,
+        onUpdate: updateHabit,
+        onArchive: archiveHabit,
+        onRestore: restoreHabit,
       }}
     />
   )
@@ -272,6 +331,18 @@ function GitHubApp() {
         error,
         from: historyFrom,
         to: now,
+      }}
+      habits={{
+        enabled: false,
+        habits: null,
+        loading: false,
+        error: null,
+        saving: false,
+        saveError: null,
+        onCreate: () => {},
+        onUpdate: () => {},
+        onArchive: () => {},
+        onRestore: () => {},
       }}
     />
   )

@@ -142,3 +142,51 @@ export function historyResponseToLogDays(history: HistoryResponse): LogDay[] {
 
   return [...byDate.values()].sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0))
 }
+
+export interface HabitApi {
+  id: string
+  slug: string
+  name: string
+  emoji: string
+  dose_text: string | null
+  frequency_per_week: number | null
+  is_reward: boolean
+  active: boolean
+}
+
+export interface HabitsResponse {
+  habits: HabitApi[]
+}
+
+export interface HabitViewModel {
+  slug: string
+  name: string
+  emoji: string
+  doseText: string | null
+  frequencyPerWeek: number | null
+  isReward: boolean
+  active: boolean
+  currentStreak: number
+  missedTwice: boolean
+}
+
+/** Přemapuje odpověď /habits + streaky z /history (nebo /week) na view modely pro obrazovku Návyky. */
+export function habitsResponseToViewModels(
+  habits: HabitsResponse,
+  streaks: { slug: string; current_streak: number; missed_twice: boolean }[],
+): HabitViewModel[] {
+  return habits.habits.map((h) => {
+    const s = streaks.find((x) => x.slug === h.slug)
+    return {
+      slug: h.slug,
+      name: h.name,
+      emoji: h.emoji,
+      doseText: h.dose_text,
+      frequencyPerWeek: h.frequency_per_week,
+      isReward: h.is_reward,
+      active: h.active,
+      currentStreak: s?.current_streak ?? 0,
+      missedTwice: s?.missed_twice ?? false,
+    }
+  })
+}

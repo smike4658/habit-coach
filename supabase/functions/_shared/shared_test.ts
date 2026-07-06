@@ -10,6 +10,8 @@ import {
 } from './dates.ts'
 import { parseLog, parseWeekPlan } from './markdown.ts'
 import { setCheckin, setSentence } from './logEdit.ts'
+import { slugify, sortHabits, validateCreateHabit, validatePatchHabit } from './habits.ts'
+import type { HabitRow } from './habits.ts'
 
 Deno.test('isoWeekId + file names', () => {
   assertEquals(isoWeekId(new Date(2026, 6, 6)), '2026-W28')
@@ -86,4 +88,76 @@ Deno.test('setSentence overwrites', () => {
   const out = setSentence(setSentence(LOG_MD, 'Po 6.7.', 'a'), 'Po 6.7.', 'b')
   assertEquals(out.includes('- Věta dne: b'), true)
   assertEquals(out.includes('- Věta dne: a'), false)
+})
+
+Deno.test('slugify strips diacritics, lowercases, dashes', () => {
+  assertEquals(slugify('Čtení'), 'cteni')
+  assertEquals(slugify('QA/AI  učení'), 'qa-ai-uceni')
+  assertEquals(slugify('  Šachy (bonus) '), 'sachy-bonus')
+})
+
+Deno.test('validateCreateHabit requires name + emoji, derives unique slug', () => {
+  const missingName = validateCreateHabit({ emoji: '📖' }, [])
+  assertEquals(missingName.ok, false)
+
+  const missingEmoji = validateCreateHabit({ name: 'Čtení' }, [])
+  assertEquals(missingEmoji.ok, false)
+
+  const derived = validateCreateHabit({ name: 'Čtení', emoji: '📖' }, [])
+  assertEquals(derived.ok, true)
+  assertEquals(derived.slug, 'cteni')
+
+  const collision = validateCreateHabit({ name: 'Čtení', emoji: '📖' }, ['cteni'])
+  assertEquals(collision.ok, false)
+
+  const badFreq = validateCreateHabit(
+    { name: 'Čtení', emoji: '📖', frequency_per_week: 9 },
+    [],
+  )
+  assertEquals(badFreq.ok, false)
+
+  const explicitSlug = validateCreateHabit(
+    { name: 'Čtení', emoji: '📖', slug: 'Reading Habit' },
+    [],
+  )
+  assertEquals(explicitSlug.slug, 'reading-habit')
+})
+
+Deno.test('validatePatchHabit requires slug + at least one change', () => {
+  const noSlug = validatePatchHabit({ active: false })
+  assertEquals(noSlug.ok, false)
+
+  const noChanges = validatePatchHabit({ slug: 'cteni' })
+  assertEquals(noChanges.ok, false)
+
+  const archive = validatePatchHabit({ slug: 'cteni', active: false })
+  assertEquals(archive.ok, true)
+
+  const emptyName = validatePatchHabit({ slug: 'cteni', name: '  ' })
+  assertEquals(emptyName.ok, false)
+
+  const badFreq = validatePatchHabit({ slug: 'cteni', frequency_per_week: 0 })
+  assertEquals(badFreq.ok, false)
+})
+
+Deno.test('sortHabits puts active first, then alphabetical by name', () => {
+  const habits: HabitRow[] = [
+    {
+      id: '1', slug: 'sachy', name: 'Šachy', emoji: '♟️', phase: 1,
+      dose_text: null, frequency_per_week: null, is_reward: true, active: true,
+      created_at: '',
+    },
+    {
+      id: '2', slug: 'cteni', name: 'Čtení', emoji: '📖', phase: 1,
+      dose_text: null, frequency_per_week: 5, is_reward: false, active: false,
+      created_at: '',
+    },
+    {
+      id: '3', slug: 'cviceni', name: 'Cvičení', emoji: '💪', phase: 1,
+      dose_text: null, frequency_per_week: 3, is_reward: false, active: true,
+      created_at: '',
+    },
+  ]
+  const sorted = sortHabits(habits)
+  assertEquals(sorted.map((h) => h.slug), ['cviceni', 'sachy', 'cteni'])
 })

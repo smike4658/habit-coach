@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import { historyResponseToLogDays, weekResponseToDashboard } from './apiAdapter'
-import type { HistoryResponse, WeekResponse } from './apiAdapter'
+import {
+  habitsResponseToViewModels,
+  historyResponseToLogDays,
+  weekResponseToDashboard,
+} from './apiAdapter'
+import type { HabitsResponse, HistoryResponse, WeekResponse } from './apiAdapter'
 
 const WEEK: WeekResponse = {
   iso: '2026-W28',
@@ -119,5 +123,76 @@ describe('historyResponseToLogDays', () => {
     const days = historyResponseToLogDays(HISTORY)
     expect(days[0].date?.getDate()).toBe(5)
     expect(days[1].date?.getDate()).toBe(6)
+  })
+})
+
+describe('habitsResponseToViewModels', () => {
+  const HABITS: HabitsResponse = {
+    habits: [
+      {
+        id: '1',
+        slug: 'cviceni',
+        name: 'Cvičení',
+        emoji: '💪',
+        dose_text: '10 min',
+        frequency_per_week: 3,
+        is_reward: false,
+        active: true,
+      },
+      {
+        id: '2',
+        slug: 'sachy',
+        name: 'Šachy',
+        emoji: '♟️',
+        dose_text: null,
+        frequency_per_week: null,
+        is_reward: true,
+        active: true,
+      },
+      {
+        id: '3',
+        slug: 'stary-navyk',
+        name: 'Starý návyk',
+        emoji: '🕰️',
+        dose_text: null,
+        frequency_per_week: null,
+        is_reward: false,
+        active: false,
+      },
+    ],
+  }
+
+  const STREAKS = [
+    { slug: 'cviceni', current_streak: 4, missed_twice: false },
+    { slug: 'sachy', current_streak: 0, missed_twice: false },
+  ]
+
+  test('maps fields and merges streak info by slug', () => {
+    const models = habitsResponseToViewModels(HABITS, STREAKS)
+    expect(models).toHaveLength(3)
+    expect(models[0]).toEqual({
+      slug: 'cviceni',
+      name: 'Cvičení',
+      emoji: '💪',
+      doseText: '10 min',
+      frequencyPerWeek: 3,
+      isReward: false,
+      active: true,
+      currentStreak: 4,
+      missedTwice: false,
+    })
+  })
+
+  test('defaults streak fields to 0/false when no streak entry found (e.g. archived habit)', () => {
+    const models = habitsResponseToViewModels(HABITS, STREAKS)
+    const archived = models.find((m) => m.slug === 'stary-navyk')
+    expect(archived?.currentStreak).toBe(0)
+    expect(archived?.missedTwice).toBe(false)
+    expect(archived?.active).toBe(false)
+  })
+
+  test('marks reward habits', () => {
+    const models = habitsResponseToViewModels(HABITS, STREAKS)
+    expect(models.find((m) => m.slug === 'sachy')?.isReward).toBe(true)
   })
 })

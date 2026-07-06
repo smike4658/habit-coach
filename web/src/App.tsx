@@ -1,122 +1,110 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { TokenGate } from './components/TokenGate'
+import { StreakCards } from './components/StreakCards'
+import { TodayCard } from './components/TodayCard'
+import { WeekTable } from './components/WeekTable'
+import { useDashboard } from './lib/useDashboard'
+import { isoWeekId } from './lib/dates'
 
-function App() {
-  const [count, setCount] = useState(0)
+const TOKEN_KEY = 'habit-coach.github-token'
+
+export default function App() {
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const { data, loading, error, unauthorized, refresh } = useDashboard(token)
+  const now = new Date()
+
+  if (!token) {
+    return (
+      <TokenGate
+        onSave={(t) => {
+          localStorage.setItem(TOKEN_KEY, t)
+          setToken(t)
+        }}
+      />
+    )
+  }
+
+  const clearToken = () => {
+    localStorage.removeItem(TOKEN_KEY)
+    setToken(null)
+  }
+
+  const formatted = new Intl.DateTimeFormat('cs-CZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(now)
+  const dateLabel = formatted.charAt(0).toUpperCase() + formatted.slice(1)
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="mx-auto max-w-xl px-5 pt-10 pb-16">
+      <header className="rise flex items-end justify-between">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+          <p className="font-mono text-xs tracking-widest text-ink-faint uppercase">
+            Habit Coach · {isoWeekId(now)}
           </p>
+          <h1 className="font-display mt-1 text-4xl font-black">{dateLabel}</h1>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="flex gap-2">
+          <button
+            onClick={refresh}
+            disabled={loading}
+            title="Obnovit"
+            className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm transition-transform active:scale-95 disabled:opacity-40"
+          >
+            {loading ? '…' : '↻'}
+          </button>
+          <button
+            onClick={clearToken}
+            title="Zapomenout token"
+            className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm text-ink-faint transition-transform active:scale-95"
+          >
+            ⏏
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <main className="mt-8 flex flex-col gap-8">
+        {error && (
+          <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
+            {unauthorized ? (
+              <>
+                GitHub token nefunguje ({error}).{' '}
+                <button onClick={clearToken} className="font-semibold underline">
+                  Zadat jiný token
+                </button>
+              </>
+            ) : (
+              <>Načtení selhalo: {error}</>
+            )}
+          </div>
+        )}
+
+        {loading && !data && <p className="text-sm text-ink-faint">Načítám deník…</p>}
+
+        {data && (
+          <>
+            {data.plan ? (
+              <>
+                <TodayCard plan={data.plan} today={data.today} todayLog={data.todayLog} />
+                <StreakCards streaks={data.streaks} />
+                <WeekTable plan={data.plan} logDaysByDate={data.logDays} now={now} />
+                <p className="text-center font-mono text-[10px] text-ink-faint">
+                  {data.plan.title}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border border-line bg-white/50 px-5 py-6 text-sm text-ink-soft">
+                  Plán pro týden {isoWeekId(now)} v repu zatím není (
+                  <span className="font-mono text-xs">plans/{isoWeekId(now)}.md</span>).
+                </div>
+                <StreakCards streaks={data.streaks} />
+              </>
+            )}
+          </>
+        )}
+      </main>
+    </div>
   )
 }
-
-export default App

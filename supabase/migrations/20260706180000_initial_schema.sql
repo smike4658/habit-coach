@@ -119,3 +119,11 @@ create policy authenticated_all_health_events on health_events
   for all to authenticated using (true) with check (true);
 create policy authenticated_all_coach_messages on coach_messages
   for all to authenticated using (true) with check (true);
+
+-- Přístup: Edge Functions používají service_role; přihlášený uživatel smí číst
+-- (přes PostgREST, kdyby web někdy četl přímo) — zápisy jdou jen přes funkce.
+grant usage on schema public to authenticated, service_role;
+grant all on all tables in schema public to service_role;
+grant select on all tables in schema public to authenticated;
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant select on tables to authenticated;

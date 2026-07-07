@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 7: Schéma letu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;600;800&family=Archivo:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 7 — „SCHÉMA LETU" (anti-grid brutalismus · schematická syrovost)
+  Trend-základ: protipohyb k bento — raw, schematické, brutálně
+  čitelné layouty; „data bez dekorace". Habitnaut jako letová
+  dokumentace: bílý papír, černé linky, mono čísla, jeden signální
+  žlutý zvýrazňovač. Struktura je vidět — sekce číslované 01/02/03,
+  tabulky s viditelnou mřížkou, heatmapa jako záznamový arch.
+  Orbita není ilustrace, ale diagram. Vtip je v přesnosti: QA tester
+  pozná svůj svět — tohle je testovací protokol vlastního života.
+
+  TYPOGRAFIE: Azeret Mono (display + čísla — hranatý, hutný mono)
+  · Archivo (tělo).
+
+  MOTION PRINCIPY:
+  - pohyb = informace, nic víc: přechody 100–140 ms, linear/steps,
+    žádný easing-teátr
+  - check-in: buňka se vyplní okamžitě (hard cut), jen zvýrazňovač
+    „přejede" žlutě zleva (width 0→100 %, 160 ms, steps(4))
+  - blikající mono kurzor u věty dne (steps(1))
+  - nová sekce při scrollu: bez animace, jen se objeví — papír
+    se nehýbe
+  - hover na desktopu: invert (černá↔bílá) bez přechodu
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --paper: #fafaf6;
+    --ink: #101010;
+    --ink-2: #55554f;
+    --ink-3: #9c9c94;
+    --rule: #101010;
+    --hair: #d9d9d0;
+    --marker: #ffd400;
+    --miss: #d8401f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #efefe9; color: var(--ink);
+    font-family: 'Archivo', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Azeret Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; background: var(--marker); display: inline-block; padding: 3px 8px; }
+  .intro h1 { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 38px; letter-spacing: -.03em; margin-top: 10px; text-transform: uppercase; }
+  .intro p { max-width: 62ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-family: 'Azeret Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border: 1.5px solid var(--ink); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Azeret Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--paper); border: 2px solid var(--ink);
+    box-shadow: 10px 10px 0 0 rgba(16,16,16,.85);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 20px 18px 96px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--rule); padding-bottom: 12px; }
+  .wordmark { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: -.02em; }
+  .wordmark span { background: var(--marker); padding: 0 3px; }
+  .fileno { font-family: 'Azeret Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); text-align: right; line-height: 1.6; }
+
+  .datehead { display: flex; align-items: stretch; border-bottom: 2px solid var(--rule); }
+  .datehead .daybox {
+    flex-shrink: 0; width: 108px; border-right: 2px solid var(--rule);
+    padding: 14px 12px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .datehead .daybox b { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 46px; line-height: .9; letter-spacing: -.05em; }
+  .datehead .daybox span { font-family: 'Azeret Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin-top: 6px; }
+  .datehead .dayinfo { flex: 1; padding: 14px; }
+  .datehead .dayinfo h2 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+  .datehead .row { display: flex; justify-content: space-between; font-family: 'Azeret Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--ink-2); margin-top: 7px; }
+  .datehead .row b { color: var(--ink); font-weight: 600; }
+  .datehead .row .hl { background: var(--marker); padding: 0 4px; color: var(--ink); font-weight: 600; }
+
+  .secno { font-family: 'Azeret Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; margin: 18px 0 8px; display: flex; align-items: baseline; gap: 8px; }
+  .secno i { font-style: normal; background: var(--ink); color: var(--paper); padding: 1px 6px; }
+
+  /* záznamová tabulka návyků */
+  .sheet { border: 2px solid var(--rule); }
+  .habit { display: flex; align-items: center; gap: 12px; padding: 12px; }
+  .habit + .habit { border-top: 1.5px solid var(--rule); }
+  .habit .idx { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 13px; flex-shrink: 0; width: 26px; }
+  .habit .hicon { flex-shrink: 0; width: 34px; height: 34px; border: 1.5px solid var(--ink); display: grid; place-items: center; }
+  .habit.is-done .hicon { background: var(--ink); color: var(--paper); }
+  .habit.is-skip .hicon { background: var(--marker); }
+  .habit .hbody { flex: 1; min-width: 0; }
+  .habit .hname { font-weight: 700; font-size: 14.5px; text-transform: uppercase; letter-spacing: .01em; }
+  .habit .hdose { font-family: 'Azeret Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 2px; letter-spacing: .02em; }
+  .habit .hmeta { font-family: 'Azeret Mono', monospace; font-size: 9.5px; margin-top: 4px; letter-spacing: .04em; }
+  .habit .hmeta.ok { font-weight: 600; }
+  .habit .hmeta.hold { background: var(--marker); display: inline-block; padding: 0 4px; font-weight: 600; }
+
+  .marks { display: flex; gap: 6px; flex-shrink: 0; }
+  .mark {
+    width: 32px; height: 32px; border: 1.5px solid var(--ink); background: var(--paper);
+    display: grid; place-items: center; color: var(--ink); cursor: pointer;
+  }
+  .mark:active { background: var(--ink); color: var(--paper); }
+  .mark.off { border-color: var(--hair); color: var(--ink-3); }
+  .mark.on-done { background: var(--ink); color: var(--paper); }
+  .mark.on-skip { background: var(--marker); color: var(--ink); }
+
+  .sentence { border: 2px solid var(--rule); border-top: 0; padding: 12px; }
+  .sentence label { font-family: 'Azeret Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+  .sentence .line { margin-top: 8px; font-family: 'Azeret Mono', monospace; font-size: 12px; color: var(--ink); }
+  .sentence .caret { animation: blink 1s steps(1) infinite; background: var(--ink); color: var(--ink); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .reward { margin-top: 14px; font-family: 'Azeret Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--ink-2); }
+  .reward b { background: var(--marker); color: var(--ink); font-weight: 600; padding: 0 4px; }
+
+  /* bottom nav — strohá lišta */
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--paper); border-top: 2px solid var(--rule);
+    display: flex;
+  }
+  .nav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    text-decoration: none; color: var(--ink-3); padding: 10px 0 12px;
+  }
+  .nav a + a { border-left: 1.5px solid var(--hair); }
+  .nav a span { font-family: 'Azeret Mono', monospace; font-size: 7.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .nav a.active { color: var(--ink); background: var(--marker); }
+
+  /* HISTORIE */
+  .seg { display: flex; border: 2px solid var(--rule); margin-top: 16px; font-family: 'Azeret Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .seg a { flex: 1; text-align: center; padding: 9px 0; color: var(--ink-2); text-decoration: none; }
+  .seg a + a { border-left: 2px solid var(--rule); }
+  .seg a.active { background: var(--ink); color: var(--paper); }
+
+  .maph { margin-top: 16px; border: 2px solid var(--rule); }
+  .maph .hd { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 12px; border-bottom: 2px solid var(--rule); }
+  .maph .hd h3 { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: -.01em; }
+  .maph .hd span { font-family: 'Azeret Mono', monospace; font-size: 9px; color: var(--ink-2); letter-spacing: .06em; }
+  .grid {
+    padding: 12px; display: grid; grid-template-rows: repeat(7, 16px);
+    grid-auto-flow: column; grid-auto-columns: 16px; gap: 3px; justify-content: center;
+  }
+  .grid i { border: 1px solid var(--ink); }
+  .grid .l0 { background: var(--paper); border-color: var(--hair); }
+  .grid .l1 { background: #d9d9d0; }
+  .grid .l2 { background: #7a7a72; }
+  .grid .l3 { background: var(--ink); }
+  .grid .ls { background: var(--marker); }
+  .grid .lf { border-color: var(--hair); background: repeating-linear-gradient(45deg, transparent, transparent 3px, var(--hair) 3px, var(--hair) 4px); }
+  .legend { display: flex; justify-content: center; gap: 12px; padding: 0 12px 12px; font-family: 'Azeret Mono', monospace; font-size: 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend i { width: 10px; height: 10px; border: 1px solid var(--ink); display: inline-block; }
+
+  .stats { display: flex; border: 2px solid var(--rule); border-top: 0; }
+  .stat { flex: 1; padding: 12px 8px 10px; text-align: center; }
+  .stat + .stat { border-left: 2px solid var(--rule); }
+  .stat b { font-family: 'Azeret Mono', monospace; font-weight: 800; font-size: 24px; letter-spacing: -.04em; display: block; line-height: 1; }
+  .stat.hl { background: var(--marker); }
+  .stat span { font-family: 'Azeret Mono', monospace; font-size: 7.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); display: block; margin-top: 5px; }
+
+  .log { border: 2px solid var(--rule); }
+  .log .entry { display: flex; gap: 12px; align-items: baseline; padding: 10px 12px; }
+  .log .entry + .entry { border-top: 1.5px solid var(--hair); }
+  .log .d { font-family: 'Azeret Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: .06em; flex-shrink: 0; }
+  .log .t { font-size: 13px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <p class="tag">Habitnaut · směr 7 / 7 · kolo 2</p>
+  <h1>Schéma letu</h1>
+  <p>Protipohyb k bento: raw, schematické, brutálně čitelné. Habitnaut jako letová
+     dokumentace — bílý papír, černé linky, mono čísla, jeden signální zvýrazňovač.
+     Struktura je přiznaná: číslované sekce, tabulky s viditelnou mřížkou, heatmapa
+     jako záznamový arch. Testovací protokol vlastního života — QA tester se pozná.</p>
+  <div class="meta">
+    <div><b>Trend-základ</b>anti-grid brutalismus · data bez dekorace</div>
+    <div><b>Typografie</b>Azeret Mono · Archivo</div>
+    <div><b>Paleta</b>
+      <div class="swatches">
+        <i style="background:#fafaf6"></i><i style="background:#101010"></i>
+        <i style="background:#ffd400"></i><i style="background:#7a7a72"></i>
+        <i style="background:#d9d9d0"></i><i style="background:#d8401f"></i>
+      </div>
+    </div>
+    <div><b>Motion</b>pohyb = informace · hard cut · žlutý přejezd zvýrazňovače</div>
+  </div>
+</header>
+
+<main class="frames">
+
+  <!-- ═════════ OBRAZOVKA: DNES ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Dnes</p>
+    <div class="phone">
+      <div class="screen">
+        <div class="topbar">
+          <span class="wordmark">HABIT<span>NAUT</span></span>
+          <p class="fileno">ZÁZNAM № 187<br>TÝDEN W28</p>
+        </div>
+
+        <div class="datehead">
+          <div class="daybox">
+            <b>06</b>
+            <span>ČERVENEC<br>PONDĚLÍ</span>
+          </div>
+          <div class="dayinfo">
+            <h2>Denní oblet</h2>
+            <div class="row"><span>CHECKPOINTY</span><b>1 / 3</b></div>
+            <div class="row"><span>STREAK</span><b>6 DNÍ</b></div>
+            <div class="row"><span>STAV ORBITY</span><span class="hl">STABILNÍ</span></div>
+          </div>
+        </div>
+
+        <p class="secno"><i>01</i> Záznamový arch</p>
+        <div class="sheet">
+          <!-- HOTOVO -->
+          <div class="habit is-done">
+            <span class="idx">A.</span>
+            <span class="hicon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <rect x="2.5" y="9" width="3.4" height="6" rx="0"/><rect x="18.1" y="9" width="3.4" height="6" rx="0"/>
+                <line x1="5.9" y1="12" x2="18.1" y2="12"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">Cvičení</p>
+              <p class="hdose">ČINKY · 15 MIN · DOPOLEDNE</p>
+              <p class="hmeta ok">[X] SPLNĚNO 09:42</p>
+            </div>
+            <div class="marks">
+              <span class="mark on-done">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- ČEKÁ — trojice stavů -->
+          <div class="habit">
+            <span class="idx">B.</span>
+            <span class="hicon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+                <path d="M12 6.2C10 4.7 7 4.3 4 4.9v13.6c3-.6 6-.2 8 1.3 2-1.5 5-1.9 8-1.3V4.9c-3-.6-6-.2-8 1.3z"/>
+                <line x1="12" y1="6.2" x2="12" y2="19.8"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">Čtení</p>
+              <p class="hdose">10 STRAN · VEČER</p>
+              <p class="hmeta">[ ] ČEKÁ NA ZÁZNAM</p>
+            </div>
+            <div class="marks">
+              <span class="mark" title="Splněno">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+              </span>
+              <span class="mark" title="Korekce kurzu (skip)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+              </span>
+              <span class="mark" title="Vynecháno">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- KOREKCE KURZU (skip) -->
+          <div class="habit is-skip">
+            <span class="idx">C.</span>
+            <span class="hicon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+                <path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">QA / AI learning</p>
+              <p class="hdose">PLAYWRIGHT KURZ · 20 MIN</p>
+              <p class="hmeta hold">[~] KOREKCE KURZU — RÝMA</p>
+            </div>
+            <div class="marks">
+              <span class="mark on-skip" title="Korekce kurzu (skip)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sentence">
+          <label>02 · Věta dne</label>
+          <p class="line">&gt; Ranní činky před stand-upem, fungovalo skvěle<span class="caret">█</span></p>
+        </div>
+
+        <p class="reward">POZN.: ŠACHY = <b>ODMĚNA</b>, NE POLOŽKA ARCHU.</p>
+      </div>
+
+      <nav class="nav">
+        <a href="#" class="active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.3"/><circle cx="6.1" cy="12" r="1.3"/><circle cx="9.1" cy="10.4" r="1.3"/><circle cx="12" cy="9.8" r="1.9"/><circle cx="14.9" cy="10.4" r="1.3"/><circle cx="17.9" cy="12" r="1.3"/><circle cx="20.8" cy="14.5" r="1.3"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.7" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.7" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ═════════ OBRAZOVKA: HISTORIE (fragment) ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Historie (fragment)</p>
+    <div class="phone">
+      <div class="screen" style="padding-bottom:88px">
+        <div class="topbar">
+          <span class="wordmark">HABIT<span>NAUT</span></span>
+          <p class="fileno">ARCHIV<br>12 TÝDNŮ</p>
+        </div>
+
+        <div class="seg">
+          <a href="#" class="active">Hvězdná mapa</a>
+          <a href="#">Kalendář</a>
+        </div>
+
+        <div class="maph">
+          <div class="hd">
+            <h3>Hvězdná mapa</h3>
+            <span>DUBEN—ČERVENEC</span>
+          </div>
+          <div class="grid">
+            <i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l1"></i><i class="l1"></i><i class="ls"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l1"></i><i class="l2"></i><i class="ls"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l1"></i><i class="ls"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i>
+            <i class="l2"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--paper);border-color:var(--hair)"></i> 0</span>
+            <span><i style="background:#d9d9d0"></i> 1</span>
+            <span><i style="background:#7a7a72"></i> 2</span>
+            <span><i style="background:#101010"></i> 3</span>
+            <span><i style="background:#ffd400"></i> korekce</span>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b>78%</b><span>úspěšnost</span></div>
+          <div class="stat hl"><b>6</b><span>dní v řadě</span></div>
+          <div class="stat"><b>21</b><span>nejdelší</span></div>
+        </div>
+
+        <p class="secno" style="margin-top:16px"><i>03</i> Lodní deník</p>
+        <div class="log">
+          <div class="entry"><span class="d">NE 05/07</span><span class="t">Týdenní review — čtení posíleno na 10 stran.</span></div>
+          <div class="entry"><span class="d">SO 04/07</span><span class="t">Běžecký pás 20 min, večer dvě partie šachů.</span></div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.3"/><circle cx="6.1" cy="12" r="1.3"/><circle cx="9.1" cy="10.4" r="1.3"/><circle cx="12" cy="9.8" r="1.9"/><circle cx="14.9" cy="10.4" r="1.3"/><circle cx="17.9" cy="12" r="1.3"/><circle cx="20.8" cy="14.5" r="1.3"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#" class="active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.7" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.7" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

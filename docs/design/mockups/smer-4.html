@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 4: Sklo nad orbitou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 4 — „SKLO NAD ORBITOU" (Apple-aligned · Liquid Glass)
+  Habitnaut jako first-party iOS 26 appka, ale pořád web PWA.
+  Jazyk Apple HIG / Liquid Glass: translucentní vrstvy s blur +
+  saturací, plovoucí glass tab bar, velký titulek, hairline dělítka,
+  zdrženlivá paleta s jedním tintem (orbit blue) a systémovými
+  sémantickými barvami. Text vždy na plné/mléčné vrstvě (HIG:
+  kontrast 4.5:1 po bluru), sklo jen jako kontejner. Orbita je tenký
+  prstenec, checkpointy jsou tečky na něm — decentní brand.
+
+  TYPOGRAFIE: Figtree (nejbližší SF Pro na Google Fonts — humanistický
+  grotesk, pravé tabulkové číslice přes font-variant-numeric).
+
+  MOTION PRINCIPY:
+  - iOS spring: cubic-bezier(.32,.72,0,1), 350–450 ms na vrstvách,
+    150 ms na dotecích; nic nelítá, všechno „teče"
+  - press = lensing: karta se lehce zmenší (scale .97) a po skle
+    přeběhne světlý highlight (gradient posun) — dojem lomu světla
+  - check-in: kroužek stavu se vyplní radiálně (scale from center),
+    haptika na zařízení; celá karta krátce projasní
+  - tab bar: aktivní pilulka morphuje mezi ikonami (position spring)
+  - velký titulek se při scrollu plynule zmenšuje do lišty (HIG vzor)
+  - prefers-reduced-motion: pouze cross-fade
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --canvas: #eef0f6;
+    --wash-a: rgba(61,109,246,.10);
+    --wash-b: rgba(255,159,10,.08);
+    --glass: rgba(255,255,255,.66);
+    --glass-strong: rgba(255,255,255,.82);
+    --stroke: rgba(255,255,255,.75);
+    --hairline: rgba(60,60,67,.12);
+    --label: #101319;
+    --label-2: rgba(30,34,44,.62);
+    --label-3: rgba(30,34,44,.38);
+    --tint: #3d6df6;
+    --done: #2fae52;
+    --skip: #f29a1f;
+    --miss: #e5483f;
+    --shadow: 0 10px 34px rgba(24,32,58,.10), 0 1px 2px rgba(24,32,58,.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--canvas); color: var(--label);
+    font-family: 'Figtree', -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--tint); }
+  .intro h1 { font-weight: 800; font-size: 38px; letter-spacing: -.02em; margin-top: 6px; }
+  .intro p { max-width: 64ch; margin-top: 10px; color: var(--label-2); font-size: 14.5px; line-height: 1.55; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--label-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--label-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 8px; border: 1px solid rgba(24,32,58,.14); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--label-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; border-radius: 34px; overflow: hidden; position: relative;
+    background:
+      radial-gradient(70% 45% at 18% 6%, var(--wash-a), transparent 70%),
+      radial-gradient(55% 38% at 88% 30%, var(--wash-b), transparent 70%),
+      radial-gradient(60% 40% at 40% 95%, rgba(61,109,246,.07), transparent 70%),
+      linear-gradient(180deg, #f4f5f9, #e9ecf4);
+    border: 1px solid rgba(24,32,58,.10);
+    box-shadow: 0 30px 70px -30px rgba(24,32,58,.35);
+  }
+  .screen { padding: 24px 20px 110px; }
+
+  .statusrow { display: flex; justify-content: space-between; align-items: center; }
+  .wordmark { font-weight: 700; font-size: 13px; letter-spacing: .01em; color: var(--label-2); }
+  .wordmark b { color: var(--tint); font-weight: 800; }
+  .pill {
+    font-size: 11px; font-weight: 600; color: var(--label-2);
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 999px;
+    padding: 5px 12px; backdrop-filter: blur(20px) saturate(1.6); box-shadow: var(--shadow);
+  }
+  .pill b { color: var(--label); }
+
+  .largetitle { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .largetitle h2 { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+  .largetitle .sub { margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--label-2); }
+  .largetitle .sub b { color: var(--done); font-weight: 700; }
+
+  /* tenký orbit ring */
+  .ring { flex-shrink: 0; filter: drop-shadow(0 4px 10px rgba(24,32,58,.10)); }
+
+  .card {
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 22px;
+    backdrop-filter: blur(24px) saturate(1.7); box-shadow: var(--shadow);
+    margin-top: 14px; overflow: hidden;
+  }
+  .card .hd { padding: 13px 18px 0; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--label-3); }
+
+  .habit { display: flex; align-items: center; gap: 13px; padding: 13px 16px; }
+  .habit + .habit { border-top: 1px solid var(--hairline); }
+  .habit .hicon {
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 13px;
+    display: grid; place-items: center; color: var(--tint);
+    background: rgba(61,109,246,.10);
+  }
+  .habit.is-done .hicon { color: var(--done); background: rgba(47,174,82,.12); }
+  .habit.is-skip .hicon { color: var(--skip); background: rgba(242,154,31,.13); }
+  .habit .hbody { flex: 1; min-width: 0; }
+  .habit .hname { font-size: 15.5px; font-weight: 700; letter-spacing: -.01em; }
+  .habit .hdose { font-size: 12.5px; color: var(--label-2); margin-top: 1px; }
+  .habit .hmeta { font-size: 11.5px; font-weight: 600; margin-top: 3px; }
+  .habit .hmeta.ok { color: var(--done); }
+  .habit .hmeta.hold { color: var(--skip); }
+
+  .marks { display: flex; gap: 7px; flex-shrink: 0; }
+  .mark {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid rgba(60,60,67,.22); background: var(--glass-strong);
+    display: grid; place-items: center; color: var(--label-3); cursor: pointer;
+    transition: transform .15s cubic-bezier(.32,.72,0,1);
+  }
+  .mark:active { transform: scale(.9); }
+  .mark.on-done { background: var(--done); border-color: var(--done); color: #fff; box-shadow: 0 4px 12px rgba(47,174,82,.35); }
+  .mark.on-skip { background: var(--skip); border-color: var(--skip); color: #fff; box-shadow: 0 4px 12px rgba(242,154,31,.35); }
+
+  .sentence { padding: 13px 16px 15px; }
+  .sentence label { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--label-3); }
+  .sentence .line {
+    margin-top: 9px; font-size: 14.5px; color: var(--label-2);
+    background: rgba(255,255,255,.85); border: 1px solid var(--hairline);
+    border-radius: 13px; padding: 10px 13px;
+  }
+  .sentence .caret { color: var(--tint); }
+
+  .reward { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 0 6px; font-size: 12px; font-weight: 500; color: var(--label-2); }
+  .reward svg { color: var(--skip); flex-shrink: 0; }
+
+  /* plovoucí glass tab bar */
+  .nav {
+    position: absolute; left: 14px; right: 14px; bottom: 14px;
+    background: var(--glass); border: 1px solid var(--stroke); border-radius: 999px;
+    backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: 0 14px 40px rgba(24,32,58,.16), 0 1px 2px rgba(24,32,58,.06);
+    display: flex; padding: 7px;
+  }
+  .nav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    text-decoration: none; color: var(--label-3); padding: 7px 0 5px; border-radius: 999px;
+    transition: color .2s;
+  }
+  .nav a span { font-size: 8.5px; font-weight: 700; letter-spacing: .06em; }
+  .nav a.active { color: #fff; background: var(--tint); box-shadow: 0 6px 16px rgba(61,109,246,.4); }
+
+  /* HISTORIE */
+  .seg {
+    display: flex; margin-top: 16px; background: rgba(60,60,67,.09);
+    border-radius: 12px; padding: 3px; font-size: 12.5px; font-weight: 600;
+  }
+  .seg a { flex: 1; text-align: center; padding: 7px 0; color: var(--label-2); text-decoration: none; border-radius: 9px; }
+  .seg a.active { background: var(--glass-strong); color: var(--label); box-shadow: 0 2px 8px rgba(24,32,58,.12); }
+
+  .grid {
+    margin-top: 4px; padding: 14px 16px 0; display: grid; grid-template-rows: repeat(7, 15px);
+    grid-auto-flow: column; grid-auto-columns: 15px; gap: 6px; justify-content: center;
+  }
+  .grid i { border-radius: 4.5px; }
+  .grid .l0 { background: rgba(60,60,67,.08); }
+  .grid .l1 { background: rgba(61,109,246,.28); }
+  .grid .l2 { background: rgba(61,109,246,.6); }
+  .grid .l3 { background: var(--tint); box-shadow: 0 2px 6px rgba(61,109,246,.35); }
+  .grid .ls { background: transparent; border: 1.5px solid var(--skip); }
+  .grid .lf { background: transparent; border: 1px dashed rgba(60,60,67,.18); }
+  .legend { display: flex; justify-content: center; gap: 14px; padding: 12px 0 14px; font-size: 10.5px; font-weight: 600; color: var(--label-3); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3.5px; display: inline-block; }
+
+  .stats { display: flex; gap: 10px; margin-top: 14px; }
+  .stat {
+    flex: 1; background: var(--glass); border: 1px solid var(--stroke); border-radius: 18px;
+    backdrop-filter: blur(24px) saturate(1.7); box-shadow: var(--shadow);
+    padding: 13px 8px; text-align: center;
+  }
+  .stat b { font-size: 24px; font-weight: 800; letter-spacing: -.02em; display: block; line-height: 1.1; }
+  .stat.tint b { color: var(--tint); }
+  .stat.green b { color: var(--done); }
+  .stat span { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--label-3); display: block; margin-top: 3px; }
+
+  .log { padding: 4px 16px 14px; }
+  .log .entry { display: flex; gap: 12px; align-items: baseline; padding: 10px 0; }
+  .log .entry + .entry { border-top: 1px solid var(--hairline); }
+  .log .d { font-size: 11px; font-weight: 700; color: var(--label-3); flex-shrink: 0; }
+  .log .t { font-size: 13px; color: var(--label-2); }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <p class="tag">Habitnaut · směr 4 / 7 · kolo 2</p>
+  <h1>Sklo nad orbitou</h1>
+  <p>Habitnaut jako first-party iOS 26 appka: Liquid Glass vrstvy s blurem a saturací,
+     plovoucí skleněný tab bar, velký titulek, hairline dělítka, jeden tint (orbit blue)
+     a systémové sémantické barvy. Text vždy na mléčné vrstvě — sklo je kontejner,
+     ne dekorace. Známé, tiché, „patří to do telefonu".</p>
+  <div class="meta">
+    <div><b>Trend-základ</b>Apple Liquid Glass / HIG iOS 26</div>
+    <div><b>Typografie</b>Figtree (SF-like, tabulkové číslice)</div>
+    <div><b>Paleta</b>
+      <div class="swatches">
+        <i style="background:#eef0f6"></i><i style="background:rgba(255,255,255,.8)"></i>
+        <i style="background:#3d6df6"></i><i style="background:#2fae52"></i>
+        <i style="background:#f29a1f"></i><i style="background:#101319"></i>
+      </div>
+    </div>
+    <div><b>Motion</b>iOS spring · lensing highlight · morph tab pilulky</div>
+  </div>
+</header>
+
+<main class="frames">
+
+  <!-- ═════════ OBRAZOVKA: DNES ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Dnes</p>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusrow">
+          <span class="wordmark">Habit<b>naut</b></span>
+          <span class="pill">Oblet <b>187</b> · W28</span>
+        </div>
+
+        <div class="largetitle">
+          <div>
+            <h2>Dnes</h2>
+            <p class="sub">Pondělí 6. července · <b>1 ze 3</b> hotovo</p>
+          </div>
+          <!-- tenká orbita: progress + 3 checkpointy -->
+          <svg class="ring" width="84" height="84" viewBox="0 0 84 84" fill="none" aria-hidden="true">
+            <circle cx="42" cy="42" r="34" stroke="rgba(60,60,67,.14)" stroke-width="6"/>
+            <circle cx="42" cy="42" r="34" stroke="#3d6df6" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="213.6" stroke-dashoffset="142.4" transform="rotate(-90 42 42)"/>
+            <text x="42" y="47" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="800" font-size="17" fill="#101319">1/3</text>
+            <circle cx="42" cy="8" r="4.5" fill="#2fae52"/>
+            <circle cx="12.6" cy="59" r="4" fill="#fff" stroke="#f29a1f" stroke-width="1.6" stroke-dasharray="2 2"/>
+            <circle cx="71.4" cy="59" r="4" fill="#fff" stroke="rgba(60,60,67,.3)" stroke-width="1.6"/>
+          </svg>
+        </div>
+
+        <div class="card">
+          <p class="hd">Dnešní návyky</p>
+
+          <!-- HOTOVO -->
+          <div class="habit is-done">
+            <span class="hicon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <rect x="2.5" y="9" width="3.4" height="6" rx="1.2"/><rect x="18.1" y="9" width="3.4" height="6" rx="1.2"/>
+                <line x1="5.9" y1="12" x2="18.1" y2="12"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">Cvičení</p>
+              <p class="hdose">Činky 15 min · dopoledne</p>
+              <p class="hmeta ok">Hotovo v 9:42</p>
+            </div>
+            <div class="marks">
+              <span class="mark on-done">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- ČEKÁ — trojice stavů -->
+          <div class="habit">
+            <span class="hicon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+                <path d="M12 6.2C10 4.7 7 4.3 4 4.9v13.6c3-.6 6-.2 8 1.3 2-1.5 5-1.9 8-1.3V4.9c-3-.6-6-.2-8 1.3z"/>
+                <line x1="12" y1="6.2" x2="12" y2="19.8"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">Čtení</p>
+              <p class="hdose">10 stran · večer</p>
+            </div>
+            <div class="marks">
+              <span class="mark" title="Hotovo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+              </span>
+              <span class="mark" title="Korekce kurzu (skip)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+              </span>
+              <span class="mark" title="Vynecháno">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- KOREKCE KURZU (skip) -->
+          <div class="habit is-skip">
+            <span class="hicon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+                <path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z"/>
+              </svg>
+            </span>
+            <div class="hbody">
+              <p class="hname">QA / AI learning</p>
+              <p class="hdose">Playwright kurz 20 min</p>
+              <p class="hmeta hold">Korekce kurzu — rýma · orbita drží</p>
+            </div>
+            <div class="marks">
+              <span class="mark on-skip" title="Korekce kurzu (skip)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card sentence">
+          <label>Věta dne</label>
+          <p class="line">Ranní činky před stand-upem, fungovalo skvěle<span class="caret">|</span></p>
+        </div>
+
+        <p class="reward">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5c3.5-2 8.5 2 12 0v9c-3.5 2-8.5-2-12 0"/></svg>
+          Šachy jsou odměna, ne úkol — orbita už drží.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a href="#" class="active">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.3"/><circle cx="6.1" cy="12" r="1.3"/><circle cx="9.1" cy="10.4" r="1.3"/><circle cx="12" cy="9.8" r="1.9"/><circle cx="14.9" cy="10.4" r="1.3"/><circle cx="17.9" cy="12" r="1.3"/><circle cx="20.8" cy="14.5" r="1.3"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.7" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.7" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ═════════ OBRAZOVKA: HISTORIE (fragment) ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Historie (fragment)</p>
+    <div class="phone">
+      <div class="screen" style="padding-bottom:100px">
+        <div class="statusrow">
+          <span class="wordmark">Habit<b>naut</b></span>
+          <span class="pill"><b>12</b> týdnů</span>
+        </div>
+
+        <div class="largetitle">
+          <div>
+            <h2>Historie</h2>
+            <p class="sub">Duben — červenec</p>
+          </div>
+        </div>
+
+        <div class="seg">
+          <a href="#" class="active">Hvězdná mapa</a>
+          <a href="#">Kalendář</a>
+        </div>
+
+        <div class="card">
+          <p class="hd">Hvězdná mapa · 1 buňka = 1 den</p>
+          <div class="grid">
+            <i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l1"></i><i class="l1"></i><i class="ls"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l1"></i><i class="l2"></i><i class="ls"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l1"></i><i class="ls"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i>
+            <i class="l2"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i>
+          </div>
+          <div class="legend">
+            <span><i style="background:rgba(60,60,67,.08)"></i> 0</span>
+            <span><i style="background:rgba(61,109,246,.28)"></i> 1</span>
+            <span><i style="background:rgba(61,109,246,.6)"></i> 2</span>
+            <span><i style="background:#3d6df6"></i> 3</span>
+            <span><i style="border:1.5px solid #f29a1f"></i> korekce</span>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat green"><b>78&thinsp;%</b><span>úspěšnost</span></div>
+          <div class="stat tint"><b>6</b><span>dní v řadě</span></div>
+          <div class="stat"><b>21</b><span>nejdelší</span></div>
+        </div>
+
+        <div class="card">
+          <p class="hd">Lodní deník</p>
+          <div class="log">
+            <div class="entry"><span class="d">NE 5. 7.</span><span class="t">Týdenní review — čtení posíleno na 10 stran.</span></div>
+            <div class="entry"><span class="d">SO 4. 7.</span><span class="t">Běžecký pás 20 min, večer dvě partie šachů.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.3"/><circle cx="6.1" cy="12" r="1.3"/><circle cx="9.1" cy="10.4" r="1.3"/><circle cx="12" cy="9.8" r="1.9"/><circle cx="14.9" cy="10.4" r="1.3"/><circle cx="17.9" cy="12" r="1.3"/><circle cx="20.8" cy="14.5" r="1.3"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#" class="active">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.7" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.7" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 6: Tichá orbita</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Hanken+Grotesk:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 6 — „TICHÁ ORBITA" (dark-first · calm/quiet UI)
+  Trend-základ: dark-first workflow (OLED čerň jako výchozí režim)
+  + calm design — kognitivní klid, žádná vizuální divadla. Večer,
+  kdy check-in probíhá, je appka tichá jako noční obloha: čistá
+  čerň, vlasové linky, jediný akcent měsíčního zlata. Žádné karty,
+  žádné stíny — jen typografie, světlo a prázdno. Orbita je tenká
+  čára, checkpointy drobná světla. Nejvíc „quiet luxury" ze všech
+  směrů — appka, která po tobě nic nechce.
+
+  TYPOGRAFIE: Marcellus (display — klidná, chrámová antikva s duchem
+  rytiny) · Hanken Grotesk (tělo, light/regular).
+
+  MOTION PRINCIPY:
+  - jen jas a průhlednost: prvky se rozsvěcejí (opacity + brightness),
+    nikdy neposouvají víc než 6 px; 400–600 ms, ease-in-out
+  - check-in: bod stavu se rozsvítí jako hvězda (opacity 0→1 +
+    box-shadow glow 300 ms), řádek návyku lehce ztlumí — hotovo
+    ustupuje do pozadí, zbývající svítí
+  - orbit arc se dokreslí pomalu (800 ms) při otevření
+  - heatmapa: jas buněk nabíhá zleva doprava jako východ hvězd
+  - žádné bounce, žádné scale — klid je záměr; reduced-motion: fade
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --void: #000000;
+    --surface: #0a0a0c;
+    --hairline: rgba(255,255,255,.10);
+    --hairline-lit: rgba(255,255,255,.2);
+    --text: #ecebe6;
+    --dim: #98968f;
+    --faint: #55544f;
+    --moon: #d3b478;
+    --done: #e9e7e0;
+    --miss: #8a5a52;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050506; color: var(--text);
+    font-family: 'Hanken Grotesk', system-ui, sans-serif; font-weight: 300;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-size: 10.5px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--moon); }
+  .intro h1 { font-family: 'Marcellus', serif; font-weight: 400; font-size: 42px; letter-spacing: .02em; margin-top: 8px; }
+  .intro p { max-width: 64ch; margin-top: 10px; color: var(--dim); font-size: 14.5px; line-height: 1.65; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 20px; font-size: 12.5px; color: var(--dim); }
+  .meta b { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-size: 10px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--faint); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--void); border-radius: 34px;
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.95);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 30px 26px 104px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: baseline; }
+  .wordmark { font-family: 'Marcellus', serif; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; }
+  .wordmark span { color: var(--moon); }
+  .orbitno { font-size: 10px; font-weight: 400; letter-spacing: .22em; text-transform: uppercase; color: var(--faint); }
+
+  .datehead { margin-top: 30px; text-align: center; }
+  .datehead .arcwrap { display: flex; justify-content: center; }
+  .datehead h2 { font-family: 'Marcellus', serif; font-weight: 400; font-size: 30px; letter-spacing: .02em; margin-top: -46px; }
+  .datehead .sub { font-size: 12px; color: var(--dim); margin-top: 8px; letter-spacing: .08em; }
+  .datehead .sub b { color: var(--moon); font-weight: 400; }
+
+  .rule { border: 0; border-top: 1px solid var(--hairline); margin: 28px 0 0; }
+  .section-label { font-size: 9.5px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--faint); margin: 26px 0 4px; text-align: center; }
+
+  /* řádky návyků — žádné karty, jen vlasové linky */
+  .habit { display: flex; align-items: center; gap: 15px; padding: 17px 2px; border-bottom: 1px solid var(--hairline); }
+  .habit .hicon { flex-shrink: 0; width: 34px; height: 34px; display: grid; place-items: center; color: var(--faint); }
+  .habit.is-done .hicon { color: var(--moon); }
+  .habit.is-skip .hicon { color: var(--moon); opacity: .7; }
+  .habit .hbody { flex: 1; min-width: 0; }
+  .habit .hname { font-family: 'Marcellus', serif; font-size: 17px; letter-spacing: .03em; }
+  .habit.is-done .hname { color: var(--dim); }
+  .habit .hdose { font-size: 12px; color: var(--faint); margin-top: 2px; letter-spacing: .04em; }
+  .habit .hmeta { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; margin-top: 5px; color: var(--moon); }
+
+  .marks { display: flex; gap: 9px; flex-shrink: 0; }
+  .mark {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hairline-lit);
+    display: grid; place-items: center; color: var(--faint); cursor: pointer;
+    transition: opacity .4s, border-color .4s, color .4s;
+  }
+  .mark.on-done { border-color: var(--done); color: var(--done); box-shadow: 0 0 16px -4px rgba(236,235,230,.55); }
+  .mark.on-skip { border-color: var(--moon); color: var(--moon); border-style: dashed; box-shadow: 0 0 14px -4px rgba(211,180,120,.5); }
+
+  .sentence { padding: 20px 2px 0; }
+  .sentence label { font-size: 9.5px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--faint); }
+  .sentence .line { margin-top: 12px; font-size: 15px; font-style: italic; color: var(--dim); border-bottom: 1px solid var(--hairline-lit); padding-bottom: 10px; }
+  .sentence .caret { color: var(--moon); font-style: normal; }
+
+  .reward { margin-top: 22px; text-align: center; font-size: 11.5px; color: var(--faint); letter-spacing: .06em; font-style: italic; }
+  .reward b { color: var(--moon); font-weight: 400; }
+
+  /* bottom nav — tichá lišta */
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.92); border-top: 1px solid var(--hairline);
+    display: flex; padding: 12px 8px 18px;
+  }
+  .nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: var(--faint); transition: color .4s; }
+  .nav a span { font-size: 8px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+  .nav a.active { color: var(--moon); }
+  .nav a.active svg { filter: drop-shadow(0 0 6px rgba(211,180,120,.5)); }
+
+  /* HISTORIE */
+  .seg { display: flex; justify-content: center; gap: 26px; margin-top: 24px; font-size: 10px; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; }
+  .seg a { color: var(--faint); text-decoration: none; padding-bottom: 7px; }
+  .seg a.active { color: var(--text); border-bottom: 1px solid var(--moon); }
+
+  .starmap { margin-top: 24px; text-align: center; }
+  .starmap h3 { font-family: 'Marcellus', serif; font-weight: 400; font-size: 19px; letter-spacing: .04em; }
+  .starmap .sub { font-size: 10.5px; color: var(--faint); margin-top: 4px; letter-spacing: .1em; }
+  .grid {
+    margin-top: 18px; display: grid; grid-template-rows: repeat(7, 15px);
+    grid-auto-flow: column; grid-auto-columns: 15px; gap: 7px; justify-content: center;
+  }
+  .grid i { border-radius: 50%; place-self: center; }
+  .grid .l0 { width: 3px; height: 3px; background: rgba(255,255,255,.14); }
+  .grid .l1 { width: 5px; height: 5px; background: rgba(236,235,230,.4); }
+  .grid .l2 { width: 7px; height: 7px; background: rgba(236,235,230,.72); }
+  .grid .l3 { width: 9px; height: 9px; background: var(--done); box-shadow: 0 0 8px rgba(236,235,230,.75); }
+  .grid .ls { width: 7px; height: 7px; background: transparent; border: 1px dashed var(--moon); }
+  .grid .lf { width: 3px; height: 3px; border: 1px solid rgba(255,255,255,.14); background: transparent; }
+  .legend { display: flex; justify-content: center; gap: 16px; margin-top: 16px; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend i { border-radius: 50%; display: inline-block; }
+
+  .stats { display: flex; justify-content: center; gap: 40px; margin-top: 26px; text-align: center; }
+  .stat b { font-family: 'Marcellus', serif; font-weight: 400; font-size: 30px; display: block; line-height: 1; }
+  .stat.moon b { color: var(--moon); }
+  .stat span { font-size: 8.5px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--faint); display: block; margin-top: 8px; }
+
+  .log { margin-top: 8px; }
+  .log .entry { display: flex; gap: 14px; align-items: baseline; padding: 13px 2px; border-bottom: 1px solid var(--hairline); }
+  .log .d { font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--moon); flex-shrink: 0; opacity: .8; }
+  .log .t { font-size: 13px; font-style: italic; color: var(--dim); }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <p class="tag">Habitnaut · směr 6 / 7 · kolo 2</p>
+  <h1>Tichá orbita</h1>
+  <p>Dark-first pro večerní check-in: čistá OLED čerň, vlasové linky, jediný akcent
+     měsíčního zlata. Žádné karty, žádné stíny, žádná gamifikace na očích — jen
+     typografie, světlo a prázdno. Splněné ustupuje do šera, zbývající tiše svítí.
+     Appka, která po tobě nic nechce; nejklidnější ze všech směrů.</p>
+  <div class="meta">
+    <div><b>Trend-základ</b>dark-first + calm/quiet UI</div>
+    <div><b>Typografie</b>Marcellus · Hanken Grotesk</div>
+    <div><b>Paleta</b>
+      <div class="swatches">
+        <i style="background:#000"></i><i style="background:#0a0a0c"></i>
+        <i style="background:#ecebe6"></i><i style="background:#98968f"></i>
+        <i style="background:#d3b478"></i><i style="background:#8a5a52"></i>
+      </div>
+    </div>
+    <div><b>Motion</b>jen jas a průhlednost · rozsvícení hvězdy · žádné bounce</div>
+  </div>
+</header>
+
+<main class="frames">
+
+  <!-- ═════════ OBRAZOVKA: DNES ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Dnes</p>
+    <div class="phone">
+      <div class="screen">
+        <div class="topbar">
+          <span class="wordmark">Habit<span>naut</span></span>
+          <span class="orbitno">Oblet 187</span>
+        </div>
+
+        <div class="datehead">
+          <!-- tenký orbit-oblouk nad datem: 1/3 zlatý -->
+          <div class="arcwrap">
+            <svg width="240" height="120" viewBox="0 0 240 120" fill="none" aria-hidden="true">
+              <path d="M20 112a100 100 0 0 1 200 0" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+              <path d="M20 112a100 100 0 0 1 66.6-84.3" stroke="#d3b478" stroke-width="1.5"/>
+              <circle cx="86.6" cy="27.7" r="3.5" fill="#d3b478"/>
+              <circle cx="120" cy="12" r="3" fill="none" stroke="#d3b478" stroke-width="1" stroke-dasharray="1.8 1.8"/>
+              <circle cx="188" cy="49" r="3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+            </svg>
+          </div>
+          <h2>Pondělí 6. července</h2>
+          <p class="sub">Jeden checkpoint svítí · <b>zbývají dva</b></p>
+        </div>
+
+        <p class="section-label">Dnešní oblet</p>
+
+        <!-- HOTOVO — ustupuje do šera -->
+        <div class="habit is-done">
+          <span class="hicon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+              <rect x="2.5" y="9" width="3.4" height="6" rx="1.2"/><rect x="18.1" y="9" width="3.4" height="6" rx="1.2"/>
+              <line x1="5.9" y1="12" x2="18.1" y2="12"/>
+            </svg>
+          </span>
+          <div class="hbody">
+            <p class="hname">Cvičení</p>
+            <p class="hdose">Činky 15 min · dopoledne</p>
+            <p class="hmeta">Zapsáno · 9:42</p>
+          </div>
+          <div class="marks">
+            <span class="mark on-done">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- ČEKÁ — svítí, trojice stavů -->
+        <div class="habit">
+          <span class="hicon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+              <path d="M12 6.2C10 4.7 7 4.3 4 4.9v13.6c3-.6 6-.2 8 1.3 2-1.5 5-1.9 8-1.3V4.9c-3-.6-6-.2-8 1.3z"/>
+              <line x1="12" y1="6.2" x2="12" y2="19.8"/>
+            </svg>
+          </span>
+          <div class="hbody">
+            <p class="hname">Čtení</p>
+            <p class="hdose">10 stran · večer</p>
+          </div>
+          <div class="marks">
+            <span class="mark" title="Hotovo">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+            </span>
+            <span class="mark" title="Korekce kurzu (skip)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+            </span>
+            <span class="mark" title="Vynecháno">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- KOREKCE KURZU (skip) -->
+        <div class="habit is-skip">
+          <span class="hicon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">
+              <path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z"/>
+            </svg>
+          </span>
+          <div class="hbody">
+            <p class="hname">QA / AI learning</p>
+            <p class="hdose">Playwright kurz 20 min</p>
+            <p class="hmeta">Korekce kurzu · orbita drží</p>
+          </div>
+          <div class="marks">
+            <span class="mark on-skip" title="Korekce kurzu (skip)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14c2.6-7.5 12.4-7.5 15 0"/><path d="M16.4 12.2l3.1 1.8.5-3.4"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="sentence">
+          <label>Věta dne</label>
+          <p class="line">Ranní činky před stand-upem, fungovalo skvěle<span class="caret">|</span></p>
+        </div>
+
+        <p class="reward">Šachy jsou <b>odměna</b>, ne úkol. Nebe je klidné.</p>
+      </div>
+
+      <nav class="nav">
+        <a href="#" class="active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.2"/><circle cx="6.1" cy="12" r="1.2"/><circle cx="9.1" cy="10.4" r="1.2"/><circle cx="12" cy="9.8" r="1.8"/><circle cx="14.9" cy="10.4" r="1.2"/><circle cx="17.9" cy="12" r="1.2"/><circle cx="20.8" cy="14.5" r="1.2"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.6" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ═════════ OBRAZOVKA: HISTORIE (fragment) ═════════ -->
+  <section>
+    <p class="frame-label">Obrazovka · Historie (fragment)</p>
+    <div class="phone">
+      <div class="screen" style="padding-bottom:96px">
+        <div class="topbar">
+          <span class="wordmark">Habit<span>naut</span></span>
+          <span class="orbitno">12 týdnů</span>
+        </div>
+
+        <div class="seg">
+          <a href="#" class="active">Hvězdná mapa</a>
+          <a href="#">Kalendář</a>
+        </div>
+
+        <div class="starmap">
+          <h3>Hvězdná mapa</h3>
+          <p class="sub">Duben — červenec · každá hvězda je den</p>
+          <div class="grid">
+            <i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l2"></i><i class="l1"></i><i class="l0"></i><i class="l1"></i>
+            <i class="l1"></i><i class="l1"></i><i class="l1"></i><i class="ls"></i><i class="l0"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i><i class="l0"></i>
+            <i class="l1"></i><i class="l2"></i><i class="ls"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l1"></i><i class="ls"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l1"></i>
+            <i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i>
+            <i class="l3"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i><i class="l2"></i><i class="l3"></i><i class="l2"></i>
+            <i class="l2"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i><i class="lf"></i>
+          </div>
+          <div class="legend">
+            <span><i style="width:3px;height:3px;background:rgba(255,255,255,.14)"></i> nic</span>
+            <span><i style="width:5px;height:5px;background:rgba(236,235,230,.4)"></i> 1</span>
+            <span><i style="width:7px;height:7px;background:rgba(236,235,230,.72)"></i> 2</span>
+            <span><i style="width:9px;height:9px;background:#ecebe6"></i> 3</span>
+            <span><i style="width:7px;height:7px;border:1px dashed #d3b478"></i> korekce</span>
+          </div>
+        </div>
+
+        <hr class="rule">
+
+        <div class="stats">
+          <div class="stat"><b>78 %</b><span>úspěšnost</span></div>
+          <div class="stat moon"><b>6</b><span>dní v řadě</span></div>
+          <div class="stat"><b>21</b><span>nejdelší</span></div>
+        </div>
+
+        <p class="section-label" style="margin-top:30px">Lodní deník</p>
+        <div class="log">
+          <div class="entry"><span class="d">NE 5. 7.</span><span class="t">Týdenní review — čtení posíleno na 10 stran.</span></div>
+          <div class="entry"><span class="d">SO 4. 7.</span><span class="t">Běžecký pás 20 min, večer dvě partie šachů.</span></div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="4.4" transform="rotate(-24 12 12)"/><circle cx="20.7" cy="8.2" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span>Dnes</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="3.2" cy="14.5" r="1.2"/><circle cx="6.1" cy="12" r="1.2"/><circle cx="9.1" cy="10.4" r="1.2"/><circle cx="12" cy="9.8" r="1.8"/><circle cx="14.9" cy="10.4" r="1.2"/><circle cx="17.9" cy="12" r="1.2"/><circle cx="20.8" cy="14.5" r="1.2"/></svg>
+          <span>Týden</span>
+        </a>
+        <a href="#" class="active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 17.5L9 9l5 4.5L20 5"/><circle cx="4" cy="17.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.6" fill="currentColor" stroke="none"/><circle cx="14" cy="13.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
+          <span>Historie</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="5.5" cy="6" r="2"/><line x1="10.5" y1="6" x2="20.5" y2="6"/><circle cx="5.5" cy="12" r="2"/><line x1="10.5" y1="12" x2="20.5" y2="12"/><circle cx="5.5" cy="18" r="2"/><line x1="10.5" y1="18" x2="20.5" y2="18"/></svg>
+          <span>Návyky</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><line x1="12" y1="12" x2="16.4" y2="8"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><line x1="12" y1="3.8" x2="12" y2="5.6"/><line x1="20.2" y1="12" x2="18.4" y2="12"/><line x1="12" y1="20.2" x2="12" y2="18.4"/></svg>
+          <span>Nastavení</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

@@ -1,10 +1,13 @@
-# W3.3 — Návrh: informační architektura + 3 vizuální směry
+# W3.3 — Návrh: informační architektura + vizuální směry
 
 Datum: 2026-07-06 · Krok W3.3 z `docs/plans/2026-07-06-w3-web-redesign-plan.md`
 Vstupy: `BRANDING.md` (Habitnaut), `docs/research/2026-07-W3-feature-matrix.md` (P1 + UX vzory),
 současný web MVP (`web/src/`), produktový design §1–4.
 Stav: **čeká na Michalův výběr směru** — plné design tokens + design-system.md se rozpracují
 až pro vítěze (follow-up krok, ne teď).
+Aktualizace 2026-07-07: přidáno **kolo 2** (směry 4–7, viz níže) po Michalově zpětné vazbě
+na kolo 1: „Nevypadají špatně, ale s žádným si nejsem jistý." — chtěl modernější směry
+ukotvené v aktuálních trendech. Rešerše trendů: `docs/design/trends-2026.md`.
 
 ---
 
@@ -105,8 +108,32 @@ Společný inventář komponent (všechny směry, liší se jen stylem):
 
 ---
 
-## 3. Další krok
+## 3. Kolo 2 — čtyři moderní směry (2026-07-07)
 
-Michal vybere směr (orchestrátor předloží mockupy). Follow-up subagent pak rozpracuje
-vítěze do `docs/design/design-system.md` (plné tokens, typografická škála, spacing,
-všechny stavy komponent, dark-mode strategie) — teprve potom startuje W3.4 dávka 1.
+Mockupy: `docs/design/mockups/smer-4.html` · `smer-5.html` · `smer-6.html` · `smer-7.html`
+(stejný formát jako kolo 1: 390 px, Dnes + fragment Historie s heatmapou, bez JS,
+vlastní SVG ikony, motion principy v hlavičce souboru).
+
+**Čím se kolo 2 liší od kola 1:** kolo 1 stavělo na *příběhových estetikách* (deník,
+přístrojová deska, retro plakát) — každý směr měl silnou tematickou stylizaci. Kolo 2
+staví na *aktuálních trendech 2025/26* (rešerše v `trends-2026.md`): žádné retro,
+současné vizuální jazyky, které uživatel zná z dnešních kvalitních appek. Habitnaut
+metafory (orbita, checkpoint, korekce kurzu, lodní deník) zůstávají, ale nesou je
+komponenty, ne kulisa. IA (bod 1) platí beze změny pro všechny směry.
+
+| | **Směr 4 — Sklo nad orbitou** | **Směr 5 — Bento paluba** | **Směr 6 — Tichá orbita** | **Směr 7 — Schéma letu** |
+|---|---|---|---|---|
+| Trend-základ | Apple Liquid Glass / HIG iOS 26: translucentní vrstvy, plovoucí glass tab bar, velký titulek | bento grid 2026 (výrazné zaoblení, taktilní dlaždice) + calm paleta (Cloud Dancer) | dark-first (OLED čerň) + calm/quiet UI — jen jas, typografie a prázdno | anti-grid brutalismus: raw schematické layouty, „data bez dekorace" |
+| Klíčová myšlenka | Habitnaut jako first-party iOS appka — známé, tiché, „patří do telefonu" | den = paluba z modulů; každá dlaždice je přístroj k stisknutí | noční obloha pro večerní check-in; splněné ustupuje do šera, zbývající svítí | letová dokumentace: záznamový arch, číslované sekce, testovací protokol vlastního života |
+| Typografie | Figtree (SF-like) | Bricolage Grotesque · Schibsted Grotesk | Marcellus · Hanken Grotesk | Azeret Mono · Archivo |
+| Paleta | mlha `#eef0f6`, sklo (bílá .66 + blur), tint `#3d6df6`, sém. zelená/jantar | canvas `#edeae2`, dlaždice `#fbfaf6`, šalvěj/nebe/písek, zeleň `#3e7c4f` | čerň `#000`, text `#ecebe6`, měsíční zlato `#d3b478` | papír `#fafaf6`, čerň `#101010`, signální žluť `#ffd400` |
+| Motion | iOS spring, lensing highlight, morph tab pilulky | vyskládání bento, squish press, crossfade stavu | jen jas/průhlednost, rozsvícení hvězdy, žádné bounce | pohyb = informace: hard cut, žlutý přejezd, blikající kurzor |
+| Pro | okamžitě působí jako hotový produkt; nulová vizuální únava; PWA na iPhonu splyne se systémem | nejlepší škálování obsahu (statistiky = další dlaždice); hravé ale klidné; skvělé pro widgety | ideální pro hlavní use case (večer, 2 min); nejsilnější atmosféra; OLED baterie | nejosobitější a nejvíc „Michal" (QA protokol); brutálně čitelné; nejlevnější na implementaci (žádné blury/stíny) |
+| Proti | nejmíň vlastní identity — „hezký iOS klon"; backdrop-filter má výkonnostní cenu | bento je všude — riziko generičnosti bez disciplíny; hodně dlaždic = drobení pozornosti | light mode by byl druhý projekt; přes den venku hůř čitelné; elegance vyžaduje přesnost v detailu | polarizující — „strohé jako výkaz"; žlutá jako jediná barva unese málo sémantiky; vtip může zevšednět |
+
+## 4. Další krok
+
+Michal vybere směr ze 7 kandidátů (orchestrátor předloží mockupy obou kol). Follow-up
+subagent pak rozpracuje vítěze do `docs/design/design-system.md` (plné tokens,
+typografická škála, spacing, všechny stavy komponent, dark/light strategie) — teprve
+potom startuje W3.4 dávka 1.

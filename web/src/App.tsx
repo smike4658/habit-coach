@@ -16,6 +16,7 @@ import { apiMode, getSession, postCheckin, postSentence, supabase } from './lib/
 import { isoWeekId, toIsoDate } from './lib/dates'
 import { submitCheckin, submitSentence } from './lib/checkinService'
 import { missingColumnsFor, yesterdayGap } from './lib/backfill'
+import { IconList, IconMap, IconTrail } from './components/trail'
 import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
@@ -29,7 +30,7 @@ function initialTab(): Tab {
   return TABS.find((t) => window.location.hash === `#${t}`) ?? 'today'
 }
 
-interface HistoryProps {
+export interface HistoryProps {
   logDays: import('./lib/markdown').LogDay[] | null
   loading: boolean
   error: string | null
@@ -37,7 +38,7 @@ interface HistoryProps {
   to: Date
 }
 
-interface HabitsProps {
+export interface HabitsProps {
   enabled: boolean
   habits: import('./lib/apiAdapter').HabitViewModel[] | null
   loading: boolean
@@ -50,7 +51,7 @@ interface HabitsProps {
   onRestore: (slug: string) => void
 }
 
-interface ViewProps {
+export interface ViewProps {
   data: Dashboard | null
   loading: boolean
   error: string | null
@@ -67,32 +68,34 @@ interface ViewProps {
   habits: HabitsProps
 }
 
-function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'today', label: 'Dnes' },
-    { id: 'history', label: 'Historie' },
-    { id: 'habits', label: 'Návyky' },
+function TrailNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
+  const items: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'today', label: 'Dnes', icon: <IconTrail active={tab === 'today'} /> },
+    { id: 'history', label: 'Mapa', icon: <IconMap /> },
+    { id: 'habits', label: 'Návyky', icon: <IconList /> },
   ]
   return (
-    <nav className="mt-4 flex gap-1 border-b border-line">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          onClick={() => onChange(t.id)}
-          className={`-mb-px rounded-t-lg border border-b-0 px-4 py-2 text-sm font-semibold transition-colors ${
-            tab === t.id
-              ? 'border-line bg-white/60 text-ink'
-              : 'border-transparent text-ink-faint hover:text-ink-soft'
-          }`}
-        >
-          {t.label}
-        </button>
-      ))}
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-xl border-t-[1.5px] border-ink bg-white-warm px-2 pt-2 pb-[calc(12px+env(safe-area-inset-bottom,8px))]">
+      {items.map((t) => {
+        const on = tab === t.id
+        return (
+          <button
+            key={t.id}
+            onClick={() => onChange(t.id)}
+            className={`flex flex-1 flex-col items-center gap-1 font-mono text-[9px] tracking-wide uppercase transition-colors ${
+              on ? 'text-ink' : 'text-ink-faint'
+            }`}
+          >
+            <span className={on ? 'text-trail-red' : ''}>{t.icon}</span>
+            {t.label}
+          </button>
+        )
+      })}
     </nav>
   )
 }
 
-function DashboardView(p: ViewProps) {
+export function DashboardView(p: ViewProps) {
   const [tab, setTab] = useState<Tab>(initialTab)
   const [historyFocus, setHistoryFocus] = useState<Date | null>(null)
   const now = new Date()
@@ -129,49 +132,52 @@ function DashboardView(p: ViewProps) {
   }, [missingToday, anyDoneToday])
 
   return (
-    <div className="mx-auto max-w-xl px-5 pt-10 pb-16">
-      <header className="rise flex items-end justify-between">
-        <div>
-          <p className="font-mono text-xs tracking-widest text-ink-faint uppercase">
-            Habitnaut · {isoWeekId(now)}
+    <div className="mx-auto max-w-xl px-5 pt-9 pb-28">
+      <header className="rise">
+        <div className="flex items-center justify-between">
+          <p className="font-display text-[17px] font-bold">
+            habit<span className="text-trail-red">naut</span>
           </p>
-          <h1 className="font-display mt-1 text-4xl font-black">{dateLabel}</h1>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] text-ink-faint uppercase">{isoWeekId(now)}</span>
             <button
               onClick={p.onRefresh}
               disabled={p.loading}
               title="Obnovit"
-              className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm transition-transform active:scale-95 disabled:opacity-40"
+              className="rounded-lg border border-line bg-white-warm px-2.5 py-1.5 text-sm transition-transform active:scale-95 disabled:opacity-40"
             >
               {p.loading ? '…' : '↻'}
             </button>
             <button
               onClick={p.onLogout}
               title="Odhlásit"
-              className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm text-ink-faint transition-transform active:scale-95"
+              className="rounded-lg border border-line bg-white-warm px-2.5 py-1.5 text-sm text-ink-faint transition-transform active:scale-95"
             >
               ⏏
             </button>
           </div>
-          {loadedAt && (
-            <span className="font-mono text-[9px] text-ink-faint">
-              načteno {loadedAt.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
+        </div>
+
+        {/* rozcestník s datem */}
+        <div className="relative mt-4 rounded-l-md rounded-r-[26px] border-[1.5px] border-ink bg-white-warm px-5 py-3 shadow-[3px_3px_0_rgba(42,36,22,0.18)]">
+          <div
+            className="absolute top-1/2 -right-[11px] h-5 w-5 -translate-y-1/2 rotate-45 rounded-tr-lg border-t-[1.5px] border-r-[1.5px] border-ink bg-white-warm"
+            aria-hidden
+          />
+          <div className="font-display text-[22px] font-bold">{dateLabel}</div>
+          <div className="mt-0.5 flex justify-between font-mono text-[10px] text-ink-faint">
+            <span>dnešní etapa</span>
+            {loadedAt && (
+              <span>
+                načteno{' '}
+                {loadedAt.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
       {celebrating && <Celebration />}
-
-      <TabNav
-        tab={tab}
-        onChange={(t) => {
-          setHistoryFocus(null)
-          setTab(t)
-        }}
-      />
 
       {p.saveError && (
         <div className="mt-4 rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
@@ -262,6 +268,14 @@ function DashboardView(p: ViewProps) {
             Správa návyků vyžaduje API mód.
           </div>
         ))}
+
+      <TrailNav
+        tab={tab}
+        onChange={(t) => {
+          setHistoryFocus(null)
+          setTab(t)
+        }}
+      />
     </div>
   )
 }

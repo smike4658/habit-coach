@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { CheckinStatus, LogDay, PlanDay, WeekPlan } from '../lib/markdown'
 import { STATUS_BUTTONS, statusForColumn } from './checkinStatus'
-
-const habitEmoji = (text: string) => text.match(/^\p{Extended_Pictographic}/u)?.[0] ?? null
+import { TrailMark } from './trail'
+import { markerColorForIndex } from './trailColors'
 
 function Linkified({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s)]+)/g)
@@ -55,24 +55,24 @@ export function TodayCard({
               const item = today.items[i]
               const status = statusForColumn(col, todayLog)
               return (
-                <li key={col} className="flex items-start gap-3 px-5 py-4">
-                  <span className="text-xl leading-6">{habitEmoji(col) ?? '•'}</span>
+                <li key={col} className="flex items-center gap-2.5 px-4 py-3.5">
+                  <TrailMark color={markerColorForIndex(i)} />
                   <div className="min-w-0 flex-1">
-                    <div className={`text-sm ${item ? '' : 'text-ink-faint italic'}`}>
+                    <div className={`font-display text-[15px] leading-tight font-semibold ${item ? '' : 'text-ink-faint italic'}`}>
                       {item ?? 'dnes neplánováno'}
                     </div>
-                    <div className="mt-0.5 text-xs text-ink-faint">
+                    <div className="mt-0.5 font-mono text-[9.5px] tracking-wide text-ink-faint uppercase">
                       {col.replace(/^\S+\s*/, '')}
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
+                  <div className="flex shrink-0 gap-1">
                     {STATUS_BUTTONS.map((b) => (
                       <button
                         key={b.status}
                         disabled={saving}
                         onClick={() => onCheckin(col, b.status)}
                         title={b.title}
-                        className={`rounded-lg px-2 py-1.5 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
+                        className={`rounded-lg px-1.5 py-1.5 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
                           status === b.status ? b.activeCls : 'opacity-45 hover:opacity-100'
                         }`}
                       >

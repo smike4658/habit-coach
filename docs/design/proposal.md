@@ -131,9 +131,32 @@ komponenty, ne kulisa. IA (bod 1) platí beze změny pro všechny směry.
 | Pro | okamžitě působí jako hotový produkt; nulová vizuální únava; PWA na iPhonu splyne se systémem | nejlepší škálování obsahu (statistiky = další dlaždice); hravé ale klidné; skvělé pro widgety | ideální pro hlavní use case (večer, 2 min); nejsilnější atmosféra; OLED baterie | nejosobitější a nejvíc „Michal" (QA protokol); brutálně čitelné; nejlevnější na implementaci (žádné blury/stíny) |
 | Proti | nejmíň vlastní identity — „hezký iOS klon"; backdrop-filter má výkonnostní cenu | bento je všude — riziko generičnosti bez disciplíny; hodně dlaždic = drobení pozornosti | light mode by byl druhý projekt; přes den venku hůř čitelné; elegance vyžaduje přesnost v detailu | polarizující — „strohé jako výkaz"; žlutá jako jediná barva unese málo sémantiky; vtip může zevšednět |
 
-## 4. Další krok
+## 4. Kolo 3 — tři směry z podstaty návyků (2026-07-11)
 
-Michal vybere směr ze 7 kandidátů (orchestrátor předloží mockupy obou kol). Follow-up
-subagent pak rozpracuje vítěze do `docs/design/design-system.md` (plné tokens,
-typografická škála, spacing, všechny stavy komponent, dark/light strategie) — teprve
-potom startuje W3.4 dávka 1.
+Mockupy: `docs/design/mockups/smer-8.html` · `smer-9.html` · `smer-10.html`
+(stejný formát: 390 px, Dnes + fragment Historie, bez JS, vlastní SVG, motion v hlavičce).
+
+**Zadání od Michala:** žádný vesmír, žádné QA — metafora má vyrůstat z účelu appky.
+Kolo 3 proto staví každý směr na jiném *poctivém mechanismu návyku*: opakování
+prošlapává cestu (8), návyk je rytmus a pauza je součást hudby (9), dny se tkají
+steh po stehu a jeden vynechaný steh látku netrhá (10). Metafora v každém směru
+nese i pravidla kouče (skip nezlomí streak, 2× po sobě = zásah), ne jen dekoraci.
+
+| | **Směr 8 — Stezka** | **Směr 9 — Rytmus** | **Směr 10 — Osnova** |
+|---|---|---|---|
+| Mechanismus návyku | opakovaný průchod vyšlapává pěšinu; bez chození zarůstá | držet rytmus, ne vyhrávat; pomlka je součást skladby | den = útek provlečený osnovou; jeden volný steh látka unese |
+| Vizuální jazyk | české turistické značení: značky bílá-barva-bílá, rozcestníky, vrstevnice; **každý návyk = barva značky** (červená/modrá/zelená, šachy žlutá odbočka) | notace: takt o 7 dobách, noty, pomlka 𝄽 pro skip, metronom, historie = partitura | Anni Albers / Bauhaus tkanina: cívky, tkaný pruh (selvage), historie = kus látky, díra = 2 vynechané stehy |
+| Typografie | Zilla Slab · Atkinson Hyperlegible · Chivo Mono | Instrument Serif · Onest · Red Hat Mono | Epilogue · Karla · Sometype Mono |
+| Paleta | mapový papír `#f3eedd`, inkoust, značkové červená/modrá/zelená/žlutá | ivory `#f7f4ec`, notová čerň, mosaz `#a97e2c` | len `#efe9dd`, rez `#b6482b`, indigo `#35507c`, okr, mech |
+| Skip = | odpočívadlo (přístřešek) — na stezce se odpočívá | pomlka — má vlastní notový znak, skladba nekončí | volný steh — nit položená naplocho, vzor drží |
+| Pro | nejosobnější (česká turistika), barva-per-návyk je silný systém, „zarůstání" komunikuje i úpadek | filozoficky nejpřesnější k „kontinuita > výkon"; elegantní, tichý; pomlka je nejlepší UI pro skip | nejhmatatelnější historie („kus látky, cos utkal"); Bauhaus estetika stárne nejpomaleji |
+| Proti | ikonografie hodně česká — mimo CZ nečitelná (pro single-user OK); hnědá heatmapa méně „šťavnatá" | notace může být pro nehudebníka cizí; nejméně barevný | tkaní jako téma může působit řemeslně-nostalgicky; selvage pruh chce disciplínu, jinak sklouzne ke kýči |
+
+Pozn. ke jménu: **Habitnaut** unese všechna tři („-naut" = poutník/plavec, nejen kosmo-),
+ale u směru 8 by šlo přirozeně přejmenovat později (viz BACKLOG, fáze 4).
+
+## 5. Další krok
+
+Michal vybere směr z 10 kandidátů (kola 1–3). Follow-up subagent pak rozpracuje
+vítěze do `docs/design/design-system.md` (plné tokens, typografická škála, spacing,
+všechny stavy komponent, dark/light strategie) — teprve potom startuje přeoblečení UI.

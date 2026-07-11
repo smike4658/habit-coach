@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 8: Stezka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Chivo+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 8 — „STEZKA" (české turistické značení · mapa prošlapávání)
+  Metafora-základ: návyk JE prošlapaná cesta — opakovaným průchodem
+  se pěšina vyšlape, bez chození zaroste. To není kulisa, to je
+  doslovný mechanismus návyku. Vizuální jazyk: české turistické
+  značky (bílá-barva-bílá), rozcestníky s časy, vrstevnice na mapě.
+  KAŽDÝ NÁVYK = JEDNA ZNAČKA: cvičení červená, čtení modrá,
+  QA/AI zelená, šachy žlutá (odměna — odbočka k vyhlídce).
+  Skip = odpočívadlo (přístřešek): na stezce se odpočívá, cesta vede dál.
+
+  TYPOGRAFIE: Zilla Slab (display — atlasové/mapové písmo) ·
+  Atkinson Hyperlegible (tělo — rodokmen v čitelnosti značení) ·
+  Chivo Mono (vzdálenosti a časy na rozcestníku).
+
+  MOTION PRINCIPY:
+  - značky se „namalují": barevný pruh roste zleva 240 ms, ease-out,
+    stagger 70 ms — jako tah štětcem na kmen
+  - check-in Projito: pruh značky se přemaluje sytou barvou + krátké
+    zhoupnutí rozcestníkové šipky (transform-origin vlevo, 6°)
+  - odpočívadlo: stříška se „usadí" (translateY -4 → 0, 200 ms)
+  - heatmapa: prošlapaná políčka tmavnou postupně po týdnech
+    (stagger po sloupcích) — pěšina se vyšlapává před očima
+  - vrstevnice na pozadí driftují 60 s lineárně (background-position)
+  - prefers-reduced-motion: vše statické, jen okamžitý stav
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --map: #f3eedd;
+    --card: #fbf8ec;
+    --contour: #ddd3b4;
+    --ink: #2a2416;
+    --ink-2: #6a5f48;
+    --ink-3: #a2967b;
+    --red: #c8371f;
+    --blue: #2e6b9f;
+    --green: #3a7a44;
+    --yellow: #d9a417;
+    --line: #d8cdad;
+    --white: #fdfcf6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--map); color: var(--ink);
+    font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+    background-image:
+      repeating-radial-gradient(ellipse 900px 620px at 15% -10%, transparent 0 46px, rgba(160,140,90,.10) 46px 47px),
+      repeating-radial-gradient(ellipse 1100px 700px at 110% 115%, transparent 0 54px, rgba(160,140,90,.08) 54px 55px);
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--red); }
+  .intro h1 { font-family: 'Zilla Slab', serif; font-weight: 700; font-size: 40px; letter-spacing: -.01em; margin-top: 6px; }
+  .intro p { max-width: 66ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(42,36,22,.15); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--map); border-radius: 30px;
+    box-shadow: inset 0 0 0 1px rgba(42,36,22,.12), 0 30px 70px -30px rgba(42,36,22,.45);
+    overflow: hidden; position: relative;
+    background-image:
+      repeating-radial-gradient(ellipse 700px 500px at -10% -20%, transparent 0 42px, rgba(160,140,90,.12) 42px 43px),
+      repeating-radial-gradient(ellipse 800px 600px at 120% 120%, transparent 0 50px, rgba(160,140,90,.09) 50px 51px);
+  }
+  .screen { padding: 22px 18px 96px; }
+
+  /* ── turistická značka: bílá-barva-bílá ─────────────────────── */
+  .mark { width: 30px; height: 22px; border-radius: 4px; overflow: hidden; flex: none;
+    box-shadow: 0 1px 0 rgba(42,36,22,.25), inset 0 0 0 1px rgba(42,36,22,.18); display: flex; flex-direction: column; }
+  .mark i { flex: 1; background: var(--white); }
+  .mark i.c { flex: 1.2; }
+  .mark.red i.c { background: var(--red); }
+  .mark.blue i.c { background: var(--blue); }
+  .mark.green i.c { background: var(--green); }
+  .mark.yellow i.c { background: var(--yellow); }
+  .mark.faded i.c { opacity: .3; }
+
+  /* ── hlavička: rozcestník ───────────────────────────────────── */
+  .signpost-top { display: flex; align-items: center; justify-content: space-between; }
+  .wordmark { font-family: 'Zilla Slab', serif; font-weight: 700; font-size: 17px; }
+  .wordmark em { font-style: normal; color: var(--red); }
+  .altitude { font-family: 'Chivo Mono', monospace; font-size: 10.5px; color: var(--ink-2); }
+
+  .signpost {
+    margin-top: 16px; position: relative;
+    background: var(--white); border: 1.5px solid var(--ink);
+    border-radius: 6px 26px 26px 6px; padding: 12px 20px 12px 16px;
+    box-shadow: 3px 3px 0 rgba(42,36,22,.18);
+  }
+  .signpost:after { /* hrot šipky rozcestníku */
+    content: ''; position: absolute; right: -13px; top: 50%; width: 24px; height: 24px;
+    background: var(--white); border: 1.5px solid var(--ink); border-left: 0; border-bottom: 0;
+    transform: translateY(-50%) rotate(45deg); border-radius: 0 8px 0 0;
+  }
+  .signpost .dest { font-family: 'Zilla Slab', serif; font-weight: 700; font-size: 22px; letter-spacing: .01em; }
+  .signpost .sub { display: flex; justify-content: space-between; margin-top: 3px;
+    font-family: 'Chivo Mono', monospace; font-size: 10.5px; color: var(--ink-2); }
+
+  /* ── karta návyku = úsek stezky ─────────────────────────────── */
+  .trail { margin-top: 18px; display: flex; flex-direction: column; gap: 0; position: relative; }
+  .trail:before { /* pěšina spojující úseky */
+    content: ''; position: absolute; left: 32px; top: 18px; bottom: 18px; width: 0;
+    border-left: 2px dashed var(--ink-3); opacity: .55;
+  }
+  .leg {
+    position: relative; display: flex; align-items: center; gap: 13px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 13px 13px 16px; margin-bottom: 10px;
+    box-shadow: 0 2px 0 rgba(42,36,22,.07);
+  }
+  .leg .info { flex: 1; min-width: 0; }
+  .leg .name { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 15.5px; }
+  .leg .dose { font-family: 'Chivo Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 2px; }
+  .leg .plan { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+
+  .triad { display: flex; gap: 6px; }
+  .tbtn {
+    width: 34px; height: 34px; border-radius: 9px; border: 1.5px solid var(--line);
+    background: var(--white); display: grid; place-items: center; color: var(--ink-3);
+  }
+  .tbtn svg { width: 17px; height: 17px; }
+  .tbtn.on-done { border-color: var(--green); background: #e4eede; color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+  .tbtn.on-rest { border-color: var(--yellow); background: #f6ecce; color: #8a6a12; box-shadow: inset 0 0 0 1px var(--yellow); }
+  .tbtn.on-miss { border-color: var(--red); background: #f3ded8; color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+
+  .stamp { /* razítko Projito */
+    position: absolute; top: -7px; right: 10px; background: var(--green); color: var(--white);
+    font-family: 'Chivo Mono', monospace; font-size: 8.5px; letter-spacing: .12em;
+    padding: 2px 7px; border-radius: 4px; transform: rotate(-2deg);
+  }
+
+  .reward {
+    display: flex; align-items: center; gap: 12px; padding: 11px 16px; margin-bottom: 10px;
+    border: 1.5px dashed var(--yellow); border-radius: 12px; background: rgba(217,164,23,.07);
+    font-size: 12.5px; color: var(--ink-2); position: relative;
+  }
+  .reward b { color: var(--ink); font-weight: 700; }
+
+  /* ── věta dne = zápis do vrcholové knihy ────────────────────── */
+  .summit {
+    margin-top: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 15px;
+  }
+  .summit label { font-family: 'Chivo Mono', monospace; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .summit .field { margin-top: 7px; border-bottom: 1.5px solid var(--contour); padding-bottom: 5px;
+    font-size: 14px; font-style: italic; color: var(--ink-2); }
+
+  /* ── streak pás ─────────────────────────────────────────────── */
+  .km {
+    margin-top: 14px; display: flex; gap: 8px;
+  }
+  .km .cell { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+  .km .cell b { font-family: 'Zilla Slab', serif; font-size: 19px; font-weight: 700; display: block; }
+  .km .cell span { font-family: 'Chivo Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+  .km .cell.warn { border-color: var(--red); background: #f3ded8; }
+  .km .cell.warn b { color: var(--red); }
+
+  /* ── bottom nav: dřevěné směrovky ───────────────────────────── */
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--white); border-top: 1.5px solid var(--ink);
+    padding: 10px 8px calc(12px + env(safe-area-inset-bottom, 8px));
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--ink-3);
+    font-family: 'Chivo Mono', monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; }
+  .nav a svg { width: 21px; height: 21px; display: block; margin: 0 auto 3px; }
+  .nav a.active { color: var(--ink); }
+  .nav a.active svg { color: var(--red); }
+
+  /* ── HISTORIE ───────────────────────────────────────────────── */
+  .h-title { font-family: 'Zilla Slab', serif; font-weight: 700; font-size: 24px; margin-top: 18px; }
+  .h-sub { font-family: 'Chivo Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 2px; }
+
+  .seg { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 4px; margin-top: 14px; }
+  .seg span { flex: 1; text-align: center; font-size: 11.5px; font-weight: 700; padding: 6px 0; border-radius: 7px; color: var(--ink-3); }
+  .seg span.on { background: var(--ink); color: var(--map); }
+
+  .wear { /* mapa prošlapání */
+    margin-top: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px;
+  }
+  .wear .grid { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
+  .wear .d { aspect-ratio: 1; border-radius: 3.5px; background: var(--map); box-shadow: inset 0 0 0 1px rgba(42,36,22,.09); }
+  .wear .w1 { background: #e5dcbf; }
+  .wear .w2 { background: #cdbd8d; }
+  .wear .w3 { background: #a78e52; }
+  .wear .w4 { background: #7c6534; box-shadow: inset 0 0 0 1px rgba(42,36,22,.2); }
+  .wear .today { outline: 2px solid var(--red); outline-offset: 1px; }
+  .wear .legend { display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 10px;
+    font-family: 'Chivo Mono', monospace; font-size: 9px; color: var(--ink-2); }
+  .wear .legend i { width: 10px; height: 10px; border-radius: 3px; }
+
+  .dists { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .dist {
+    display: flex; align-items: center; gap: 12px; background: var(--white);
+    border: 1.5px solid var(--ink); border-radius: 6px 18px 18px 6px; padding: 9px 16px 9px 12px;
+    box-shadow: 2px 2px 0 rgba(42,36,22,.15);
+  }
+  .dist .name { flex: 1; font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 14.5px; }
+  .dist .val { font-family: 'Chivo Mono', monospace; font-size: 11.5px; color: var(--ink-2); }
+  .dist .val b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 8 · kolo 3</div>
+  <h1>Stezka</h1>
+  <p>Návyk je doslova prošlapaná cesta — opakovaným průchodem se pěšina vyšlape, bez chození
+  zarůstá. Vizuální jazyk českého turistického značení: každý návyk má vlastní barvu značky
+  (bílá–barva–bílá), den je rozcestník, historie je mapa prošlapání s vrstevnicemi.
+  Skip = odpočívadlo: na stezce se odpočívá a jde se dál. Žádný vesmír — les, mapa, kilometry.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Zilla Slab · Atkinson Hyperlegible · Chivo Mono</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#f3eedd"></i><i style="background:#2a2416"></i><i style="background:#c8371f"></i><i style="background:#2e6b9f"></i><i style="background:#3a7a44"></i><i style="background:#d9a417"></i></span></div>
+    <div><b>Podpis</b>turistické značky · rozcestníkové šipky · vrstevnice</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — rozcestník</div>
+  <div class="phone"><div class="screen">
+
+    <div class="signpost-top">
+      <div class="wordmark">habit<em>naut</em></div>
+      <div class="altitude">TÝDEN 28 · DEN 6/7</div>
+    </div>
+
+    <div class="signpost">
+      <div class="dest">Sobota 11. července</div>
+      <div class="sub"><span>dnešní etapa: 3 úseky</span><span>~40 min</span></div>
+    </div>
+
+    <div class="trail">
+
+      <div class="leg">
+        <span class="mark red"><i></i><i class="c"></i><i></i></span>
+        <div class="info">
+          <div class="name">Cvičení</div>
+          <div class="dose">10 MIN · ČERVENÁ</div>
+          <div class="plan">Trénink B — kruhy, lehce</div>
+        </div>
+        <div class="triad">
+          <span class="tbtn on-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-7 9 7M6 12v7h12v-7" stroke-linejoin="round"/></svg></span>
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+        <span class="stamp">PROJITO 9:41</span>
+      </div>
+
+      <div class="leg">
+        <span class="mark blue"><i></i><i class="c"></i><i></i></span>
+        <div class="info">
+          <div class="name">Čtení</div>
+          <div class="dose">15 MIN · MODRÁ</div>
+          <div class="plan">Zaklínač — večer v klidu</div>
+        </div>
+        <div class="triad">
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-7 9 7M6 12v7h12v-7" stroke-linejoin="round"/></svg></span>
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="leg">
+        <span class="mark green"><i></i><i class="c"></i><i></i></span>
+        <div class="info">
+          <div class="name">QA/AI učení</div>
+          <div class="dose">15 MIN + TIL · ZELENÁ</div>
+          <div class="plan">Playwright den 5 + zápis</div>
+        </div>
+        <div class="triad">
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="tbtn on-rest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-7 9 7M6 12v7h12v-7" stroke-linejoin="round"/></svg></span>
+          <span class="tbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward">
+        <span class="mark yellow"><i></i><i class="c"></i><i></i></span>
+        <span><b>Šachy</b> — žlutá odbočka k vyhlídce. Jen když máš chuť, není to úsek trasy.</span>
+      </div>
+
+    </div>
+
+    <div class="summit">
+      <label>Vrcholová kniha · věta dne</label>
+      <div class="field">dneska to šlo samo…</div>
+    </div>
+
+    <div class="km">
+      <div class="cell"><b>8. den</b><span>na stezce</span></div>
+      <div class="cell"><b>86 %</b><span>etapa týdne</span></div>
+      <div class="cell warn"><b>Čtení 2×</b><span>zarůstá — zmenšit?</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20c3-1 4-4 5-8s2-7 7-8" /><circle cx="19" cy="4" r="1.6" fill="currentColor" stroke="none"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h13l3 3-3 3H4z M7 12v8"/></svg>Týden</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z M4 9h16 M9 4v16" opacity=".6"/><path d="M6 17c2-3 3-6 6-6" stroke-width="2.2" stroke-linecap="round"/></svg>Mapa</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h9"/><rect x="4" y="18" width="7" height="3" rx="1.2"/></svg>Návyky</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Základna</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — mapa prošlapání</div>
+  <div class="phone"><div class="screen">
+
+    <div class="signpost-top">
+      <div class="wordmark">habit<em>naut</em></div>
+      <div class="altitude">POSLEDNÍCH 12 MĚSÍCŮ</div>
+    </div>
+
+    <div class="h-title">Mapa prošlapání</div>
+    <div class="h-sub">čím tmavší, tím vyšlapanější den</div>
+
+    <div class="seg"><span class="on">Mapa</span><span>Kalendář</span><span>Vrcholová kniha</span></div>
+
+    <div class="wear">
+      <div class="grid">
+        <i class="d"></i><i class="d w1"></i><i class="d w1"></i><i class="d"></i><i class="d w2"></i><i class="d w1"></i><i class="d"></i><i class="d w2"></i><i class="d w2"></i><i class="d w1"></i><i class="d w3"></i><i class="d w2"></i><i class="d w2"></i><i class="d w3"></i>
+        <i class="d w1"></i><i class="d"></i><i class="d w2"></i><i class="d w1"></i><i class="d w1"></i><i class="d w3"></i><i class="d w2"></i><i class="d w1"></i><i class="d w3"></i><i class="d w3"></i><i class="d w2"></i><i class="d w4"></i><i class="d w3"></i><i class="d w4"></i>
+        <i class="d"></i><i class="d w1"></i><i class="d w1"></i><i class="d w2"></i><i class="d"></i><i class="d w2"></i><i class="d w3"></i><i class="d w2"></i><i class="d w2"></i><i class="d w4"></i><i class="d w3"></i><i class="d w3"></i><i class="d w4"></i><i class="d w4"></i>
+        <i class="d w1"></i><i class="d w2"></i><i class="d"></i><i class="d w1"></i><i class="d w2"></i><i class="d w2"></i><i class="d w1"></i><i class="d w3"></i><i class="d w3"></i><i class="d w2"></i><i class="d w4"></i><i class="d w3"></i><i class="d w4"></i><i class="d today w3"></i>
+      </div>
+      <div class="legend">zarostlé <i style="background:#f3eedd;box-shadow:inset 0 0 0 1px rgba(42,36,22,.12)"></i><i style="background:#e5dcbf"></i><i style="background:#cdbd8d"></i><i style="background:#a78e52"></i><i style="background:#7c6534"></i> vyšlapané</div>
+    </div>
+
+    <div class="dists">
+      <div class="dist"><span class="mark red"><i></i><i class="c"></i><i></i></span><span class="name">Cvičení</span><span class="val"><b>12/14</b> · 86 % · nejdelší 9</span></div>
+      <div class="dist"><span class="mark blue"><i></i><i class="c"></i><i></i></span><span class="name">Čtení</span><span class="val"><b>8/14</b> · 57 % · nejdelší 5</span></div>
+      <div class="dist"><span class="mark green"><i></i><i class="c"></i><i></i></span><span class="name">QA/AI</span><span class="val"><b>11/14</b> · 79 % · nejdelší 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20c3-1 4-4 5-8s2-7 7-8"/><circle cx="19" cy="4" r="1.6" fill="currentColor" stroke="none"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h13l3 3-3 3H4z M7 12v8"/></svg>Týden</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z M4 9h16 M9 4v16" opacity=".6"/><path d="M6 17c2-3 3-6 6-6" stroke-width="2.2" stroke-linecap="round"/></svg>Mapa</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5h14M5 10h14M5 15h9"/><rect x="4" y="18" width="7" height="3" rx="1.2"/></svg>Návyky</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Základna</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

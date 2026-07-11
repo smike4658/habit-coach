@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 9: Rytmus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@400;500;600;800&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 9 — „RYTMUS" (hudební notace · metronom · pomlka)
+  Metafora-základ: návyk = rytmus, ne výkon. Dny jsou doby v taktu,
+  týden je takt o sedmi dobách. Klíčové: PAUZA JE SOUČÁST HUDBY —
+  skip má v notaci vlastní znak (pomlka) a skladba jí nekončí.
+  Pravidlo „nikdy 2× po sobě" = neztratit rytmus; jedna vynechaná
+  doba se dožene, dvě po sobě rozpadají takt. Editorial ivory +
+  černá notace + mosazný metronom. Žádný vesmír — linky, doby, tempo.
+
+  TYPOGRAFIE: Instrument Serif (display + italika — hlas notových
+  edic) · Onest (tělo) · Red Hat Mono (tempo, čísla taktů).
+
+  MOTION PRINCIPY:
+  - metronomové kyvadlo se při otevření jednou přehoupne a zastaví
+    na dnešní době (rotate -14° → aktuální úhel, 700 ms, ease-in-out)
+  - check-in: nota „dopadne" na linku (translateY -8 → 0 + drobný
+    bounce 300 ms) a doba v taktu se vyplní
+  - pomlka: znak se vykreslí tahem (stroke-dashoffset, 260 ms)
+  - ztracená doba (miss): linka pod dobou krátce zavibruje (2px, 120 ms)
+  - heatmapa-partitura: řádky taktů nastupují po 40 ms zleva
+  - prefers-reduced-motion: kyvadlo stojí, vše jen fade
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --ivory: #f7f4ec;
+    --paper: #fffdf7;
+    --ink: #16130d;
+    --ink-2: #59544a;
+    --ink-3: #9c968a;
+    --staff: #d8d2c2;
+    --brass: #a97e2c;
+    --brass-soft: #f0e4c8;
+    --alert: #b23c2a;
+    --alert-soft: #f2ddd7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--ivory); color: var(--ink);
+    font-family: 'Onest', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--brass); }
+  .intro h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 44px; letter-spacing: 0; margin-top: 4px; }
+  .intro p { max-width: 66ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(22,19,13,.14); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--ivory); border-radius: 32px;
+    box-shadow: inset 0 0 0 1px rgba(22,19,13,.1), 0 30px 70px -30px rgba(22,19,13,.42);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 24px 20px 100px; }
+
+  .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .wordmark { font-family: 'Instrument Serif', serif; font-size: 19px; }
+  .wordmark em { color: var(--brass); }
+  .tempo { font-family: 'Red Hat Mono', monospace; font-size: 10.5px; color: var(--ink-2); }
+
+  /* ── takt týdne: 7 dob ──────────────────────────────────────── */
+  .bar-week {
+    margin-top: 18px; background: var(--paper); border: 1px solid var(--staff); border-radius: 16px;
+    padding: 16px 16px 12px; position: relative; overflow: hidden;
+  }
+  .bar-week .label { display: flex; justify-content: space-between; font-family: 'Red Hat Mono', monospace; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .staffline { position: relative; margin-top: 20px; height: 44px; }
+  .staffline:before, .staffline:after {
+    content: ''; position: absolute; left: 0; right: 0; height: 1px; background: var(--staff);
+  }
+  .staffline:before { top: 14px; }
+  .staffline:after { top: 30px; box-shadow: 0 -8px 0 var(--staff), 0 8px 0 var(--staff); }
+  .beats { position: relative; display: flex; height: 100%; }
+  .beat { flex: 1; display: grid; place-items: center; position: relative; }
+  .beat .note { width: 15px; height: 11px; border-radius: 50% / 42%; background: var(--ink); transform: rotate(-18deg); position: relative; }
+  .beat .note:after { content: ''; position: absolute; right: 0; bottom: 4px; width: 1.8px; height: 26px; background: var(--ink); }
+  .beat .rest { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--brass); font-style: italic; }
+  .beat .empty { width: 14px; height: 11px; border-radius: 50% / 42%; border: 1.6px solid var(--ink-3); transform: rotate(-18deg); }
+  .beat.now:before { content: ''; position: absolute; inset: -4px 2px; border: 1.5px dashed var(--brass); border-radius: 10px; }
+  .beat small { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-family: 'Red Hat Mono', monospace; font-size: 8.5px; color: var(--ink-3); }
+  .barline { width: 2.5px; background: var(--ink); margin: 8px 0; }
+
+  /* ── metronom dneška ────────────────────────────────────────── */
+  .metronome { display: flex; align-items: center; gap: 16px; margin-top: 26px; }
+  .wedge { width: 58px; height: 62px; flex: none; position: relative; }
+  .wedge svg { width: 100%; height: 100%; }
+  .today-word { font-family: 'Instrument Serif', serif; font-size: 30px; line-height: 1.05; }
+  .today-word i { color: var(--brass); }
+  .today-sub { font-family: 'Red Hat Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 4px; }
+
+  /* ── noty dne (návyky) ──────────────────────────────────────── */
+  .lines { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .row {
+    background: var(--paper); border: 1px solid var(--staff); border-radius: 14px;
+    padding: 13px 14px; display: flex; align-items: center; gap: 13px; position: relative;
+  }
+  .row:before { /* notová linka pod obsahem */
+    content: ''; position: absolute; left: 14px; right: 14px; bottom: 10px; height: 1px; background: var(--staff);
+  }
+  .glyph { width: 30px; flex: none; display: grid; place-items: center; color: var(--ink); }
+  .glyph svg { width: 24px; height: 24px; }
+  .row .body { flex: 1; min-width: 0; padding-bottom: 4px; }
+  .row .name { font-weight: 800; font-size: 15px; letter-spacing: -.01em; }
+  .row .dose { font-family: 'Red Hat Mono', monospace; font-size: 9.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .1em; margin-top: 2px; }
+  .row .plan { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; font-style: italic; font-family: 'Instrument Serif', serif; }
+
+  .keys { display: flex; gap: 6px; padding-bottom: 4px; }
+  .key { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--staff); background: var(--paper); display: grid; place-items: center; color: var(--ink-3); font-family: 'Instrument Serif', serif; font-size: 17px; }
+  .key svg { width: 16px; height: 16px; }
+  .key.k-done.on { background: var(--ink); border-color: var(--ink); color: var(--ivory); }
+  .key.k-rest.on { background: var(--brass-soft); border-color: var(--brass); color: var(--brass); }
+  .key.k-miss.on { background: var(--alert-soft); border-color: var(--alert); color: var(--alert); }
+
+  .reward-line { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; border: 1.5px dashed var(--brass); color: var(--ink-2); font-size: 12.5px; background: rgba(169,126,44,.05); }
+  .reward-line .fermata { font-family: 'Instrument Serif', serif; font-size: 24px; color: var(--brass); line-height: 1; }
+  .reward-line b { color: var(--ink); }
+
+  /* ── věta dne ───────────────────────────────────────────────── */
+  .coda { margin-top: 14px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1.5px solid var(--ink); padding-bottom: 7px; }
+  .coda .sign { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 15px; color: var(--brass); flex: none; }
+  .coda .txt { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 16px; color: var(--ink-2); }
+
+  .stats-line { display: flex; gap: 18px; margin-top: 14px; font-family: 'Red Hat Mono', monospace; font-size: 10.5px; color: var(--ink-2); }
+  .stats-line b { color: var(--ink); font-size: 15px; font-family: 'Onest', sans-serif; font-weight: 800; display: block; }
+  .stats-line .warn b { color: var(--alert); }
+
+  /* ── nav ────────────────────────────────────────────────────── */
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--paper); border-top: 1px solid var(--staff);
+    padding: 10px 8px calc(12px + env(safe-area-inset-bottom, 8px));
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--ink-3); font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .nav a svg { width: 21px; height: 21px; display: block; margin: 0 auto 3px; }
+  .nav a.active { color: var(--ink); }
+  .nav a.active svg { color: var(--brass); }
+
+  /* ── HISTORIE: partitura ────────────────────────────────────── */
+  .h-title { font-family: 'Instrument Serif', serif; font-size: 30px; margin-top: 20px; }
+  .h-sub { font-family: 'Red Hat Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 3px; }
+  .seg { display: flex; gap: 4px; background: var(--paper); border: 1px solid var(--staff); border-radius: 999px; padding: 4px; margin-top: 14px; }
+  .seg span { flex: 1; text-align: center; font-size: 11.5px; font-weight: 800; padding: 6px 0; border-radius: 999px; color: var(--ink-3); }
+  .seg span.on { background: var(--ink); color: var(--ivory); }
+
+  .score { margin-top: 16px; background: var(--paper); border: 1px solid var(--staff); border-radius: 16px; padding: 16px 14px 12px; }
+  .measure { display: flex; align-items: center; gap: 0; margin-bottom: 13px; }
+  .measure .no { width: 34px; font-family: 'Red Hat Mono', monospace; font-size: 9px; color: var(--ink-3); }
+  .measure .staff { flex: 1; position: relative; height: 22px; border-top: 1px solid var(--staff); border-bottom: 1px solid var(--staff); display: flex; }
+  .measure .staff:before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--staff); }
+  .measure .b { flex: 1; display: grid; place-items: center; position: relative; }
+  .measure .dot { width: 9px; height: 7px; border-radius: 50%/42%; background: var(--ink); transform: rotate(-18deg); }
+  .measure .dot.half { background: var(--ink-3); }
+  .measure .r { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 13px; color: var(--brass); }
+  .measure .x { width: 8px; height: 6px; border-radius: 50%/42%; border: 1.3px solid var(--alert); transform: rotate(-18deg); }
+  .measure .end { width: 2px; background: var(--ink); height: 22px; }
+
+  .h-stats { margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
+  .h-stat { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--staff); padding-bottom: 8px; }
+  .h-stat .nm { flex: 1; font-weight: 800; font-size: 14px; }
+  .h-stat .tempo-val { font-family: 'Red Hat Mono', monospace; font-size: 11px; color: var(--ink-2); }
+  .h-stat .tempo-val b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 9 · kolo 3</div>
+  <h1>Rytmus</h1>
+  <p>Návyk není výkon, je to rytmus — a rytmus se drží, ne vyhrává. Dny jsou doby, týden je takt
+  o sedmi dobách, historie je partitura. Klíčová poctivost téhle metafory: <em>pomlka je součást
+  hudby</em> — skip má vlastní notový znak a skladba jím nekončí. „Nikdy 2× po sobě" = neztratit
+  rytmus. Editorial ivory, černá notace, mosazný metronom.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Instrument Serif · Onest · Red Hat Mono</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#f7f4ec"></i><i style="background:#16130d"></i><i style="background:#a97e2c"></i><i style="background:#b23c2a"></i></span></div>
+    <div><b>Podpis</b>notové linky · pomlka pro skip · metronom dneška</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — šestá doba taktu</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <div class="wordmark">habit<em>naut</em></div>
+      <div class="tempo">TAKT 28 · TEMPO 86 %</div>
+    </div>
+
+    <div class="bar-week">
+      <div class="label"><span>Takt 28 · 7 dob</span><span>po — ne</span></div>
+      <div class="staffline">
+        <div class="beats">
+          <div class="beat"><span class="note"></span><small>po</small></div>
+          <div class="beat"><span class="note"></span><small>út</small></div>
+          <div class="beat"><span class="rest">𝄽</span><small>st</small></div>
+          <div class="beat"><span class="note"></span><small>čt</small></div>
+          <div class="beat"><span class="note"></span><small>pá</small></div>
+          <div class="beat now"><span class="empty"></span><small>so</small></div>
+          <div class="beat"><span class="empty" style="opacity:.35"></span><small>ne</small></div>
+          <div class="barline"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metronome">
+      <div class="wedge">
+        <svg viewBox="0 0 58 62" fill="none">
+          <path d="M20 6 h18 l12 50 H8 Z" stroke="#16130d" stroke-width="2" fill="#fffdf7"/>
+          <line x1="29" y1="52" x2="41" y2="14" stroke="#a97e2c" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="38" cy="23" r="3.4" fill="#a97e2c"/>
+          <path d="M14 56 h30" stroke="#16130d" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="today-word">Sobota <i>11. 7.</i></div>
+        <div class="today-sub">ŠESTÁ DOBA · 3 NOTY K ZAHRÁNÍ</div>
+      </div>
+    </div>
+
+    <div class="lines">
+
+      <div class="row">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10"/></svg></span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="dose">10 min · celá nota</div>
+          <div class="plan">Trénink B — kruhy, lehce</div>
+        </div>
+        <div class="keys">
+          <span class="key k-done on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="key k-rest">𝄽</span>
+          <span class="key k-miss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 6c-2-1.6-5-1.6-8-.8V19c3-.8 6-.8 8 .8 2-1.6 5-1.6 8-.8V5.2c-3-.8-6-.8-8 .8Z M12 6v13.5"/></svg></span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="dose">15 min · večer</div>
+          <div class="plan">Zaklínač, kapitola dál</div>
+        </div>
+        <div class="keys">
+          <span class="key k-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="key k-rest">𝄽</span>
+          <span class="key k-miss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3l2 4.5L19 9l-4 3 1 5-4-2.5L8 17l1-5-4-3 5-1.5Z" stroke-linejoin="round"/></svg></span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="dose">15 min + TIL</div>
+          <div class="plan">Playwright den 5 + zápis</div>
+        </div>
+        <div class="keys">
+          <span class="key k-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="key k-rest on">𝄽</span>
+          <span class="key k-miss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward-line">
+        <span class="fermata">𝄐</span>
+        <span><b>Šachy</b> — volná improvizace. Hraje se jen z chuti, do taktu se nepočítá.</span>
+      </div>
+
+    </div>
+
+    <div class="coda">
+      <span class="sign">věta dne —</span>
+      <span class="txt">držím tempo i o víkendu…</span>
+    </div>
+
+    <div class="stats-line">
+      <div><b>8 dob</b>v řadě</div>
+      <div><b>86 %</b>tempo týdne</div>
+      <div class="warn"><b>čtení 2×</b>ztrácí rytmus</div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><ellipse cx="9" cy="17" rx="3.4" ry="2.6"/><path d="M12.2 16.5V5.5L19 4v10.5"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16M8 5v4M14 10v4M11 15v4"/></svg>Takt</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18" cy="17" r="2.6"/></svg>Partitura</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 4h12M6 20h12M8 4c0 6 8 6 8 8s-8 2-8 8"/></svg>Návyky</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Ladění</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — partitura</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <div class="wordmark">habit<em>naut</em></div>
+      <div class="tempo">POSLEDNÍCH 6 TAKTŮ</div>
+    </div>
+
+    <div class="h-title">Partitura</div>
+    <div class="h-sub">každý řádek jeden týden · nota = zahraný den · 𝄽 = pomlka</div>
+
+    <div class="seg"><span class="on">Partitura</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="score">
+      <div class="measure"><span class="no">T23</span><div class="staff"><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot half"></span></span><span class="b"></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="x"></span></span><span class="b"><span class="dot half"></span></span><span class="b"></span><span class="end"></span></div></div>
+      <div class="measure"><span class="no">T24</span><div class="staff"><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="r">𝄽</span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot half"></span></span><span class="end"></span></div></div>
+      <div class="measure"><span class="no">T25</span><div class="staff"><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="x"></span></span><span class="b"><span class="x"></span></span><span class="b"><span class="dot half"></span></span><span class="end"></span></div></div>
+      <div class="measure"><span class="no">T26</span><div class="staff"><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="r">𝄽</span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="end"></span></div></div>
+      <div class="measure"><span class="no">T27</span><div class="staff"><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="end"></span></div></div>
+      <div class="measure" style="margin-bottom:2px"><span class="no">T28</span><div class="staff"><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="r">𝄽</span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot"></span></span><span class="b"><span class="dot half"></span></span><span class="b"></span><span class="end"></span></div></div>
+    </div>
+
+    <div class="h-stats" style="margin-top:16px">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="tempo-val">tempo <b>86 %</b> · nejdelší fráze <b>9 dob</b></span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="tempo-val">tempo <b>57 %</b> · nejdelší fráze <b>5 dob</b></span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="tempo-val">tempo <b>79 %</b> · nejdelší fráze <b>7 dob</b></span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><ellipse cx="9" cy="17" rx="3.4" ry="2.6"/><path d="M12.2 16.5V5.5L19 4v10.5"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16M8 5v4M14 10v4M11 15v4"/></svg>Takt</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18" cy="17" r="2.6"/></svg>Partitura</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 4h12M6 20h12M8 4c0 6 8 6 8 8s-8 2-8 8"/></svg>Návyky</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Ladění</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

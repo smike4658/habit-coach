@@ -32,6 +32,20 @@ function encodeContent(text: string): string {
   return btoa(String.fromCharCode(...new TextEncoder().encode(text)))
 }
 
+/**
+ * GitHub vrací 404 i pro token bez přístupu k repu — tímhle dotazem na metadata
+ * repa rozlišíme „soubor chybí" od „token nevidí repo" (BACKLOG 2026-07-06).
+ */
+export async function repoAccessible(
+  token: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<boolean> {
+  const res = await fetchImpl(`https://api.github.com/repos/${DATA_REPO}`, {
+    headers: headers(token),
+  })
+  return res.ok
+}
+
 /** Fetch a file from the data repo via the Contents API; returns text and blob sha. */
 export async function fetchRepoFileWithSha(
   path: string,

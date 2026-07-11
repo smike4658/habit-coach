@@ -2,11 +2,35 @@ import { useState } from 'react'
 import { buildHeatmap } from '../lib/heatmap'
 import { computeHistoryStats } from '../lib/historyStats'
 import type { CheckinStatus, LogDay } from '../lib/markdown'
+import { AchievementsRow } from './AchievementsRow'
 import { CalendarView } from './CalendarView'
 import { HeatmapGrid } from './HeatmapGrid'
 import { HistoryStats } from './HistoryStats'
 
-type HistoryMode = 'heatmap' | 'calendar'
+type HistoryMode = 'heatmap' | 'calendar' | 'sentences'
+
+/** Deník vět dne — nejnovější nahoře. Michal si pamatuje psaním; tohle je ta stopa. */
+function SentencesTimeline({ logDays }: { logDays: LogDay[] }) {
+  const withSentence = logDays
+    .filter((d) => d.date && d.sentence)
+    .sort((a, b) => b.date!.getTime() - a.date!.getTime())
+
+  if (withSentence.length === 0) {
+    return <p className="text-sm text-ink-faint">Zatím žádné věty dne. Večer jedna věta stačí.</p>
+  }
+  return (
+    <ul className="flex flex-col gap-2">
+      {withSentence.map((d) => (
+        <li key={d.date!.toISOString()} className="flex gap-3 text-sm">
+          <span className="w-14 shrink-0 pt-0.5 text-right font-mono text-[10px] text-ink-faint">
+            {d.date!.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })}
+          </span>
+          <span className="text-ink-soft italic">„{d.sentence}“</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export function HistoryView({
   logDays,
@@ -52,6 +76,7 @@ export function HistoryView({
                   [
                     { id: 'heatmap' as const, label: 'Heatmapa' },
                     { id: 'calendar' as const, label: 'Kalendář' },
+                    { id: 'sentences' as const, label: 'Věty' },
                   ]
                 ).map((opt) => (
                   <button
@@ -68,9 +93,8 @@ export function HistoryView({
               </div>
             </div>
             <div className="mt-3 rounded-xl border border-line bg-white/50 px-4 py-4">
-              {mode === 'heatmap' ? (
-                <HeatmapGrid grid={buildHeatmap(logDays, from, to)} />
-              ) : (
+              {mode === 'heatmap' && <HeatmapGrid grid={buildHeatmap(logDays, from, to)} />}
+              {mode === 'calendar' && (
                 <CalendarView
                   logDays={logDays}
                   from={from}
@@ -81,8 +105,10 @@ export function HistoryView({
                   initialSelected={focusDate}
                 />
               )}
+              {mode === 'sentences' && <SentencesTimeline logDays={logDays} />}
             </div>
           </section>
+          <AchievementsRow logDays={logDays} />
           <HistoryStats stats={computeHistoryStats(logDays)} />
         </>
       )}

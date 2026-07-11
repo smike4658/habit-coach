@@ -2,6 +2,8 @@ import { describe, expect, test } from 'vitest'
 import {
   habitsResponseToViewModels,
   historyResponseToLogDays,
+  toApiStatus,
+  toWebStatus,
   weekResponseToDashboard,
 } from './apiAdapter'
 import type { HabitsResponse, HistoryResponse, WeekResponse } from './apiAdapter'
@@ -93,6 +95,13 @@ describe('weekResponseToDashboard', () => {
   })
 })
 
+describe('status mapping', () => {
+  test('excused passes through both directions (DB enum = web name)', () => {
+    expect(toApiStatus('excused')).toBe('excused')
+    expect(toWebStatus('excused')).toBe('excused')
+  })
+})
+
 describe('historyResponseToLogDays', () => {
   const HISTORY: HistoryResponse = {
     from: '2026-04-06',
@@ -106,12 +115,16 @@ describe('historyResponseToLogDays', () => {
       { date: '2026-07-06', status: 'skipped', note: null, slug: 'cteni' },
       { date: '2026-07-05', status: 'done', note: null, slug: 'cviceni' },
     ],
+    sentences: [
+      { date: '2026-07-06', sentence: 'dobrý den' },
+      { date: '2026-07-04', sentence: 'jen věta, žádný check-in' },
+    ],
     streaks: [],
   }
 
   test('groups checkins by date into LogDay entries with web status names', () => {
     const days = historyResponseToLogDays(HISTORY)
-    expect(days).toHaveLength(2)
+    expect(days).toHaveLength(3) // 2 dny s check-iny + 1 den jen s větou
     const day6 = days.find((d) => d.date?.getDate() === 6)
     expect(day6?.entries).toEqual([
       { habit: '💪 Cvičení', status: 'done', note: 'šlo to' },
@@ -121,8 +134,17 @@ describe('historyResponseToLogDays', () => {
 
   test('sorts days chronologically', () => {
     const days = historyResponseToLogDays(HISTORY)
-    expect(days[0].date?.getDate()).toBe(5)
-    expect(days[1].date?.getDate()).toBe(6)
+    expect(days[0].date?.getDate()).toBe(4)
+    expect(days[1].date?.getDate()).toBe(5)
+    expect(days[2].date?.getDate()).toBe(6)
+  })
+
+  test('merges sentences into matching days and creates sentence-only days', () => {
+    const days = historyResponseToLogDays(HISTORY)
+    expect(days.find((d) => d.date?.getDate() === 6)?.sentence).toBe('dobrý den')
+    const sentenceOnly = days.find((d) => d.date?.getDate() === 4)
+    expect(sentenceOnly?.sentence).toBe('jen věta, žádný check-in')
+    expect(sentenceOnly?.entries).toEqual([])
   })
 })
 

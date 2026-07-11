@@ -71,7 +71,7 @@ export function TodayCard({
                         key={b.status}
                         disabled={saving}
                         onClick={() => onCheckin(col, b.status)}
-                        title={b.status}
+                        title={b.title}
                         className={`rounded-lg px-2 py-1.5 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
                           status === b.status ? b.activeCls : 'opacity-45 hover:opacity-100'
                         }`}

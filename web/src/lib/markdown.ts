@@ -1,6 +1,6 @@
 import { parseDayLabel } from './dates'
 
-export type CheckinStatus = 'done' | 'missed' | 'unplanned'
+export type CheckinStatus = 'done' | 'missed' | 'unplanned' | 'excused'
 
 export interface PlanDay {
   label: string
@@ -39,6 +39,7 @@ const STATUS_MARKS: Record<string, CheckinStatus> = {
   '✅': 'done',
   '❌': 'missed',
   '➖': 'unplanned',
+  '⏭️': 'excused',
 }
 
 function splitRow(line: string): string[] {

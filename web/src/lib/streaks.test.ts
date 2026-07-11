@@ -2,7 +2,10 @@ import { describe, expect, test } from 'vitest'
 import { computeStreaks } from './streaks'
 import type { LogDay } from './markdown'
 
-function day(dateStr: string, entries: Array<[string, 'done' | 'missed' | 'unplanned' | null]>): LogDay {
+function day(
+  dateStr: string,
+  entries: Array<[string, 'done' | 'missed' | 'unplanned' | 'excused' | null]>,
+): LogDay {
   const date = new Date(dateStr)
   return {
     label: `${date.getDate()}.${date.getMonth() + 1}.`,
@@ -58,6 +61,33 @@ describe('computeStreaks', () => {
       day('2026-07-01', [['📖 Čtení', 'missed']]),
       day('2026-07-02', [['📖 Čtení', 'missed']]),
       day('2026-07-03', [['📖 Čtení', 'done']]),
+    ]
+    expect(computeStreaks(days)['📖 Čtení'].missedTwice).toBe(false)
+  })
+
+  test('excused day does not break the streak (nemoc ≠ selhání)', () => {
+    const days = [
+      day('2026-07-01', [['💪 Cvičení', 'done']]),
+      day('2026-07-02', [['💪 Cvičení', 'excused']]),
+      day('2026-07-03', [['💪 Cvičení', 'done']]),
+    ]
+    expect(computeStreaks(days)['💪 Cvičení'].current).toBe(2)
+  })
+
+  test('trailing excused keeps the streak alive', () => {
+    const days = [
+      day('2026-07-01', [['💪 Cvičení', 'done']]),
+      day('2026-07-02', [['💪 Cvičení', 'done']]),
+      day('2026-07-03', [['💪 Cvičení', 'excused']]),
+    ]
+    expect(computeStreaks(days)['💪 Cvičení'].current).toBe(2)
+  })
+
+  test('excused between two misses interrupts the "2× po sobě" pair', () => {
+    const days = [
+      day('2026-07-01', [['📖 Čtení', 'missed']]),
+      day('2026-07-02', [['📖 Čtení', 'excused']]),
+      day('2026-07-03', [['📖 Čtení', 'missed']]),
     ]
     expect(computeStreaks(days)['📖 Čtení'].missedTwice).toBe(false)
   })

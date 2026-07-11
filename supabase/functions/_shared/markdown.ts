@@ -1,7 +1,7 @@
 import { parseDayLabel } from './dates.ts'
 
 /** DB enum names (design §3): done / skipped / unplanned. */
-export type CheckinStatus = 'done' | 'skipped' | 'unplanned'
+export type CheckinStatus = 'done' | 'skipped' | 'unplanned' | 'excused'
 
 export interface PlanDay {
   label: string
@@ -35,6 +35,7 @@ const STATUS_MARKS: Record<string, CheckinStatus> = {
   '✅': 'done',
   '❌': 'skipped',
   '➖': 'unplanned',
+  '⏭️': 'excused',
 }
 
 function splitRow(line: string): string[] {

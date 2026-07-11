@@ -14,10 +14,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Habit Coach',
-        short_name: 'Habit Coach',
+        name: 'Habitnaut',
+        short_name: 'Habitnaut',
         description: 'Deník návyků nad git repem',
         lang: 'cs',
+        shortcuts: [
+          { name: 'Dnešní check-in', url: './#today', icons: [{ src: 'pwa-192.png', sizes: '192x192' }] },
+          { name: 'Historie', url: './#history', icons: [{ src: 'pwa-192.png', sizes: '192x192' }] },
+        ],
         display: 'standalone',
         theme_color: '#f6f1e7',
         background_color: '#f6f1e7',

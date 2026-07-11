@@ -5,8 +5,8 @@ import { commitRepoFile, fetchRepoFileWithSha, GitHubError, githubConfigFromEnv 
 import { setCheckin, setSentence } from '../_shared/logEdit.ts'
 import type { CheckinStatus } from '../_shared/markdown.ts'
 
-const MARKS: Record<CheckinStatus, string> = { done: '✅', skipped: '❌', unplanned: '➖' }
-const STATUSES: CheckinStatus[] = ['done', 'skipped', 'unplanned']
+const MARKS: Record<CheckinStatus, string> = { done: '✅', skipped: '❌', unplanned: '➖', excused: '⏭️' }
+const STATUSES: CheckinStatus[] = ['done', 'skipped', 'unplanned', 'excused']
 
 interface Body {
   habit_slug?: string
@@ -34,7 +34,7 @@ async function mirrorToGit(
   } catch (e) {
     if (!(e instanceof GitHubError && e.status === 404)) throw e
     const month = new Intl.DateTimeFormat('cs-CZ', { month: 'long' }).format(day)
-    text = `# Log — ${month} ${day.getFullYear()}\n\nFormát: \`✅/❌/➖\` (splněno / vynecháno / neplánováno) + jedna věta.\n`
+    text = `# Log — ${month} ${day.getFullYear()}\n\nFormát: \`✅/❌/⏭️/➖\` (splněno / vynecháno / omluveno / neplánováno) + jedna věta.\n`
     sha = null
   }
   const label = dayLabelFor(day)

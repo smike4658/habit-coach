@@ -12,11 +12,13 @@ export function computeStreaks(days: LogDay[]): Record<string, Streak> {
     (a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0),
   )
 
-  // Per habit, statuses of planned records (done/missed) in chronological order.
-  const history = new Map<string, ('done' | 'missed')[]>()
+  // Per habit, statuses of recorded days (done/missed/excused) in chronological order.
+  // Excused (⏭️ nemoc/dovolená) is neutral: skipped for the streak count, and it
+  // interrupts a missed+missed pair (the coach rule targets unexcused misses in a row).
+  const history = new Map<string, ('done' | 'missed' | 'excused')[]>()
   for (const day of sorted) {
     for (const e of day.entries) {
-      if (e.status !== 'done' && e.status !== 'missed') continue
+      if (e.status !== 'done' && e.status !== 'missed' && e.status !== 'excused') continue
       if (!history.has(e.habit)) history.set(e.habit, [])
       history.get(e.habit)!.push(e.status)
     }
@@ -25,7 +27,11 @@ export function computeStreaks(days: LogDay[]): Record<string, Streak> {
   const result: Record<string, Streak> = {}
   for (const [habit, statuses] of history) {
     let current = 0
-    for (let i = statuses.length - 1; i >= 0 && statuses[i] === 'done'; i--) current++
+    for (let i = statuses.length - 1; i >= 0; i--) {
+      if (statuses[i] === 'excused') continue
+      if (statuses[i] !== 'done') break
+      current++
+    }
     const missedTwice =
       statuses.length >= 2 &&
       statuses[statuses.length - 1] === 'missed' &&

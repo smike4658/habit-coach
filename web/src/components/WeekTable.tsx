@@ -57,6 +57,9 @@ export function WeekTable({
                     } else if (planned && status === 'missed') {
                       mark = '✗'
                       cls = 'font-bold text-miss'
+                    } else if (planned && status === 'excused') {
+                      mark = '»'
+                      cls = 'font-bold text-marker'
                     }
                     return (
                       <td key={col} title={day.items[i] ?? undefined} className="px-2 py-2.5 text-center">
@@ -71,7 +74,7 @@ export function WeekTable({
         </table>
       </div>
       <p className="mt-2 text-right font-mono text-[10px] text-ink-faint">
-        ✓ splněno · ✗ vynecháno · ● v plánu · – volno
+        ✓ splněno · ✗ vynecháno · » omluveno · ● v plánu · – volno
       </p>
     </section>
   )

@@ -5,7 +5,7 @@ export function TokenGate({ onSave }: { onSave: (token: string) => void }) {
 
   return (
     <div className="rise mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-12">
-      <p className="font-mono text-xs tracking-widest text-ink-faint uppercase">Habit Coach</p>
+      <p className="font-mono text-xs tracking-widest text-ink-faint uppercase">Habitnaut</p>
       <h1 className="font-display mt-2 text-4xl font-black">Připojit deník</h1>
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">
         Dashboard čte tvoje plány a log z privátního repa{' '}

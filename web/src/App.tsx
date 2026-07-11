@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TokenGate } from './components/TokenGate'
 import { LoginGate } from './components/LoginGate'
 import { StreakCards } from './components/StreakCards'
@@ -6,6 +6,7 @@ import { TodayCard } from './components/TodayCard'
 import { WeekTable } from './components/WeekTable'
 import { HistoryView } from './components/HistoryView'
 import { HabitsView } from './components/HabitsView'
+import { Celebration } from './components/Celebration'
 import { useDashboard } from './lib/useDashboard'
 import type { Dashboard } from './lib/useDashboard'
 import { useApiDashboard } from './lib/useApiDashboard'
@@ -14,12 +15,19 @@ import { useHabits } from './lib/useHabits'
 import { apiMode, getSession, postCheckin, postSentence, supabase } from './lib/api'
 import { isoWeekId, toIsoDate } from './lib/dates'
 import { submitCheckin, submitSentence } from './lib/checkinService'
-import { yesterdayGap } from './lib/backfill'
+import { missingColumnsFor, yesterdayGap } from './lib/backfill'
 import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
 
 type Tab = 'today' | 'history' | 'habits'
+
+const TABS: Tab[] = ['today', 'history', 'habits']
+
+/** Výchozí tab z URL hashe — PWA shortcuts vedou na ./#today a ./#history. */
+function initialTab(): Tab {
+  return TABS.find((t) => window.location.hash === `#${t}`) ?? 'today'
+}
 
 interface HistoryProps {
   logDays: import('./lib/markdown').LogDay[] | null
@@ -85,7 +93,7 @@ function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
 }
 
 function DashboardView(p: ViewProps) {
-  const [tab, setTab] = useState<Tab>('today')
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [historyFocus, setHistoryFocus] = useState<Date | null>(null)
   const now = new Date()
   const gap = p.data?.plan ? yesterdayGap(p.data.plan, p.data.logDays, now) : null
@@ -96,33 +104,66 @@ function DashboardView(p: ViewProps) {
   }).format(now)
   const dateLabel = formatted.charAt(0).toUpperCase() + formatted.slice(1)
 
+  // Čas posledního načtení dat (BACKLOG: „Zobrazit v UI čas posledního načtení").
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null)
+  useEffect(() => {
+    if (p.data) setLoadedAt(new Date())
+  }, [p.data])
+
+  // Mikro-oslava: dnešek přešel z „něco chybí" na „vše zapsáno" (a aspoň něco je ✅).
+  const missingToday =
+    p.data?.plan && p.data.today
+      ? missingColumnsFor(p.data.plan, p.data.todayLog, now).length
+      : null
+  const anyDoneToday = p.data?.todayLog?.entries.some((e) => e.status === 'done') ?? false
+  const prevMissing = useRef<number | null>(null)
+  const [celebrating, setCelebrating] = useState(false)
+  useEffect(() => {
+    const prev = prevMissing.current
+    prevMissing.current = missingToday
+    if (missingToday === 0 && prev !== null && prev > 0 && anyDoneToday) {
+      setCelebrating(true)
+      const t = setTimeout(() => setCelebrating(false), 2300)
+      return () => clearTimeout(t)
+    }
+  }, [missingToday, anyDoneToday])
+
   return (
     <div className="mx-auto max-w-xl px-5 pt-10 pb-16">
       <header className="rise flex items-end justify-between">
         <div>
           <p className="font-mono text-xs tracking-widest text-ink-faint uppercase">
-            Habit Coach · {isoWeekId(now)}
+            Habitnaut · {isoWeekId(now)}
           </p>
           <h1 className="font-display mt-1 text-4xl font-black">{dateLabel}</h1>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={p.onRefresh}
-            disabled={p.loading}
-            title="Obnovit"
-            className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm transition-transform active:scale-95 disabled:opacity-40"
-          >
-            {p.loading ? '…' : '↻'}
-          </button>
-          <button
-            onClick={p.onLogout}
-            title="Odhlásit"
-            className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm text-ink-faint transition-transform active:scale-95"
-          >
-            ⏏
-          </button>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <button
+              onClick={p.onRefresh}
+              disabled={p.loading}
+              title="Obnovit"
+              className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm transition-transform active:scale-95 disabled:opacity-40"
+            >
+              {p.loading ? '…' : '↻'}
+            </button>
+            <button
+              onClick={p.onLogout}
+              title="Odhlásit"
+              className="rounded-lg border border-line bg-white/60 px-3 py-2 text-sm text-ink-faint transition-transform active:scale-95"
+            >
+              ⏏
+            </button>
+          </div>
+          {loadedAt && (
+            <span className="font-mono text-[9px] text-ink-faint">
+              načteno {loadedAt.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
         </div>
       </header>
+
+      {celebrating && <Celebration />}
 
       <TabNav
         tab={tab}
@@ -239,7 +280,8 @@ function useMutation(refresh: () => void) {
   return { saving, saveError, mutate }
 }
 
-const HISTORY_MONTHS = 3
+// Roční heatmapa („Year in Pixels") — /history endpoint zvládá 1–24 měsíců.
+const HISTORY_MONTHS = 12
 
 /** Fáze 1a: dashboard nad Supabase API (přihlášení e-mailem). */
 function ApiApp() {

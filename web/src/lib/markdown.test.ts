@@ -94,4 +94,10 @@ describe('parseLog', () => {
     expect(ut.entries[1]).toEqual({ habit: '📖 Čtení', status: null, note: '' })
     expect(ut.sentence).toBe('')
   })
+
+  test('parses ⏭️ as excused (omluveno — nemoc/dovolená)', () => {
+    const md = '# Log\n\n## St 8.7.\n- 💪 Cvičení: ⏭️ nemoc\n'
+    const log = parseLog(md, 2026)
+    expect(log.days[0].entries[0]).toEqual({ habit: '💪 Cvičení', status: 'excused', note: 'nemoc' })
+  })
 })

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { buildMonthGrid, dayStatus } from '../lib/calendar'
 import type { DayAggregateStatus } from '../lib/calendar'
 import type { CheckinStatus, LogDay } from '../lib/markdown'
-import { STATUS_BUTTONS, statusForColumn } from './checkinStatus'
+import { STATUS_BUTTONS, STATUS_MARK, statusForColumn } from './checkinStatus'
 
 const WEEKDAY_LABELS = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
 
@@ -166,7 +166,7 @@ export function CalendarView({
                             type="button"
                             disabled={saving}
                             onClick={() => onCheckin!(selectedCell.date, col, b.status)}
-                            title={b.status}
+                            title={b.title}
                             className={`rounded-lg px-1.5 py-1 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
                               status === b.status ? b.activeCls : 'opacity-45 hover:opacity-100'
                             }`}
@@ -184,7 +184,7 @@ export function CalendarView({
                     <li key={`extra-${i}`} className="flex items-center gap-2">
                       <span className="text-base leading-none">{emoji}</span>
                       <span className="flex-1 truncate text-ink-soft">{name}</span>
-                      <span>{e.status === 'done' ? '✅' : e.status === 'missed' ? '❌' : '➖'}</span>
+                      <span>{e.status ? STATUS_MARK[e.status] : '·'}</span>
                     </li>
                   )
                 })}
@@ -197,7 +197,7 @@ export function CalendarView({
                     <li key={i} className="flex items-center gap-2">
                       <span className="text-base leading-none">{emoji}</span>
                       <span className="flex-1 truncate text-ink-soft">{name}</span>
-                      <span>{e.status === 'done' ? '✅' : e.status === 'missed' ? '❌' : '➖'}</span>
+                      <span>{e.status ? STATUS_MARK[e.status] : '·'}</span>
                     </li>
                   )
                 })}

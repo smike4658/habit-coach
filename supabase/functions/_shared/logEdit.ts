@@ -4,9 +4,10 @@ const MARKS: Record<CheckinStatus, string> = {
   done: '✅',
   skipped: '❌',
   unplanned: '➖',
+  excused: '⏭️',
 }
 
-const MARK_RE = /^(✅|❌|➖)\s*/
+const MARK_RE = /^(✅|❌|➖|⏭️)\s*/
 
 interface Section {
   start: number

@@ -4,9 +4,10 @@ const MARKS: Record<CheckinStatus, string> = {
   done: '✅',
   missed: '❌',
   unplanned: '➖',
+  excused: '⏭️',
 }
 
-const MARK_RE = /^(✅|❌|➖)\s*/
+const MARK_RE = /^(✅|❌|➖|⏭️)\s*/
 
 interface Section {
   /** Index of the "## <day>" line, -1 when the day is missing. */

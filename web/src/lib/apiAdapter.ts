@@ -4,7 +4,7 @@ import type { Streak } from './streaks'
 import type { Dashboard } from './useDashboard'
 
 /** DB status enum (design §3) ↔ web status names. */
-export type ApiStatus = 'done' | 'skipped' | 'unplanned'
+export type ApiStatus = 'done' | 'skipped' | 'unplanned' | 'excused'
 
 export function toWebStatus(s: ApiStatus): CheckinStatus {
   return s === 'skipped' ? 'missed' : s
@@ -111,6 +111,8 @@ export interface HistoryResponse {
   to: string
   habits: { slug: string; name: string; emoji: string; is_reward: boolean }[]
   checkins: { date: string; status: ApiStatus; note: string | null; slug: string }[]
+  /** Věty dne z git logu (markdown = zdroj pravdy; DB věty nedrží). */
+  sentences?: { date: string; sentence: string }[]
   streaks: {
     slug: string
     emoji: string
@@ -138,6 +140,13 @@ export function historyResponseToLogDays(history: HistoryResponse): LogDay[] {
       status: toWebStatus(c.status),
       note: c.note ?? '',
     })
+  }
+
+  for (const s of history.sentences ?? []) {
+    if (!byDate.has(s.date)) {
+      byDate.set(s.date, { label: s.date, date: parseIsoDate(s.date), sentence: '', entries: [] })
+    }
+    byDate.get(s.date)!.sentence = s.sentence
   }
 
   return [...byDate.values()].sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0))

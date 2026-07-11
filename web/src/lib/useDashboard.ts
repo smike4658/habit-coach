@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchRepoFile, GitHubError } from './github'
+import { DATA_REPO, fetchRepoFile, GitHubError, repoAccessible } from './github'
 import { logFileName, planFileName, sameDay } from './dates'
 import { parseLog, parseWeekPlan } from './markdown'
 import type { LogDay, MonthLog, PlanDay, WeekPlan } from './markdown'
@@ -31,6 +31,14 @@ async function loadDashboard(token: string, now: Date): Promise<Dashboard> {
     fetchRepoFile(logFileName(now), token).catch(missingAsNull),
     fetchRepoFile(logFileName(prevMonth), token).catch(missingAsNull),
   ])
+
+  // Všechno 404? GitHub vrací 404 i pro token bez přístupu — rozliš přes metadata repa.
+  if (!planMd && !logMd && !prevLogMd && !(await repoAccessible(token))) {
+    throw new GitHubError(
+      403,
+      `Token nemá přístup k repu ${DATA_REPO} — zkontroluj fine-grained PAT (Contents Read+Write).`,
+    )
+  }
 
   const plan = planMd ? parseWeekPlan(planMd, now.getFullYear()) : null
   const logs: MonthLog[] = []

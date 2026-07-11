@@ -44,6 +44,18 @@ describe('setCheckin', () => {
     expect(out.indexOf('## Út 7.7.')).toBeGreaterThan(out.indexOf('## Po 6.7.'))
   })
 
+  test('writes ⏭️ for excused and keeps the note', () => {
+    const out = setCheckin(LOG, 'Po 6.7.', '📖 Čtení', 'excused')
+    expect(out).toContain('- 📖 Čtení: ⏭️ nestíhal jsem')
+  })
+
+  test('overwriting an excused mark strips ⏭️ from the kept note', () => {
+    const excused = setCheckin(LOG, 'Po 6.7.', '💪 Cvičení', 'excused', 'nemoc')
+    const done = setCheckin(excused, 'Po 6.7.', '💪 Cvičení', 'done')
+    expect(done).toContain('- 💪 Cvičení: ✅ nemoc')
+    expect(done).not.toContain('⏭️ nemoc')
+  })
+
   test('appends habit line into existing section when habit line is missing', () => {
     const md = '# Log\n\n## Po 6.7.\n- 💪 Cvičení: ✅\n'
     const out = setCheckin(md, 'Po 6.7.', '📖 Čtení', 'done')

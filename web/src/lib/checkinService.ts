@@ -10,7 +10,7 @@ export function dayLabelFor(date: Date): string {
   return `${WEEKDAYS[date.getDay()]} ${date.getDate()}.${date.getMonth() + 1}.`
 }
 
-const MARKS: Record<CheckinStatus, string> = { done: '✅', missed: '❌', unplanned: '➖' }
+const MARKS: Record<CheckinStatus, string> = { done: '✅', missed: '❌', unplanned: '➖', excused: '⏭️' }
 
 /** Plan column ("💪 Cvičení (10 min)") → log habit key ("💪 Cvičení"). */
 function habitKeyFromColumn(column: string): string {
@@ -27,7 +27,7 @@ async function loadLog(token: string, date: Date, fetchImpl: typeof fetch) {
       const month = new Intl.DateTimeFormat('cs-CZ', { month: 'long' }).format(date)
       return {
         path,
-        text: `# Log — ${month} ${date.getFullYear()}\n\nFormát: \`✅/❌/➖\` (splněno / vynecháno / neplánováno) + jedna věta.\n`,
+        text: `# Log — ${month} ${date.getFullYear()}\n\nFormát: \`✅/❌/⏭️/➖\` (splněno / vynecháno / omluveno / neplánováno) + jedna věta.\n`,
         sha: null,
       }
     }

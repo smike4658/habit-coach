@@ -180,3 +180,16 @@ Deno.test('resolveCheckinDate: bez vstupu dnešek, minulost OK, budoucnost a nes
   assertEquals(resolveCheckinDate('2026-07-12', today), 'future')
   assertEquals(resolveCheckinDate('zítra', today), 'invalid')
 })
+
+Deno.test('parseLog maps ⏭️ to excused', () => {
+  const log = parseLog('# Log\n\n## St 8.7.\n- 💪 Cvičení: ⏭️ nemoc\n', 2026)
+  assertEquals(log.days[0].entries[0].status, 'excused')
+  assertEquals(log.days[0].entries[0].note, 'nemoc')
+})
+
+Deno.test('setCheckin writes ⏭️ for excused and strips it when overwritten', () => {
+  const excused = setCheckin(LOG_MD, 'Po 6.7.', '💪 Cvičení', 'excused', 'nemoc')
+  assertEquals(excused.includes('- 💪 Cvičení: ⏭️ nemoc'), true)
+  const done = setCheckin(excused, 'Po 6.7.', '💪 Cvičení', 'done')
+  assertEquals(done.includes('- 💪 Cvičení: ✅ nemoc'), true)
+})

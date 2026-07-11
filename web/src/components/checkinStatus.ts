@@ -7,25 +7,32 @@ export function statusForColumn(column: string, log: LogDay | null): CheckinStat
   return log.entries.find((e) => e.habit.startsWith(emoji))?.status ?? null
 }
 
+// Stezka pořadí: Projito · Odpočívadlo · Mimo trasu · Sešel z cesty.
+// „Sešel z cesty" (selhání) je záměrně vpravo — neakcentovat ho (koučovská filozofie).
 export const STATUS_BUTTONS: {
   status: CheckinStatus
   mark: string
   title: string
   activeCls: string
 }[] = [
-  { status: 'done', mark: '✅', title: 'splněno', activeCls: 'bg-done-soft ring-2 ring-done' },
-  { status: 'missed', mark: '❌', title: 'vynecháno', activeCls: 'bg-miss-soft ring-2 ring-miss' },
+  { status: 'done', mark: '✅', title: 'Projito', activeCls: 'bg-done-soft ring-2 ring-done' },
   {
     status: 'excused',
     mark: '⏭️',
-    title: 'omluveno (nemoc, dovolená) — nezlomí streak',
+    title: 'Odpočívadlo (nemoc, dovolená) — nezlomí stezku',
     activeCls: 'bg-marker/20 ring-2 ring-marker',
   },
   {
     status: 'unplanned',
     mark: '➖',
-    title: 'neplánováno',
+    title: 'Mimo trasu (neplánováno)',
     activeCls: 'bg-paper-warm ring-2 ring-ink-faint',
+  },
+  {
+    status: 'missed',
+    mark: '❌',
+    title: 'Sešel jsem z cesty (vynecháno)',
+    activeCls: 'bg-miss-soft ring-2 ring-miss',
   },
 ]
 

@@ -23,8 +23,8 @@ export default defineConfig({
           { name: 'Historie', url: './#history', icons: [{ src: 'pwa-192.png', sizes: '192x192' }] },
         ],
         display: 'standalone',
-        theme_color: '#f6f1e7',
-        background_color: '#f6f1e7',
+        theme_color: '#f3eedd',
+        background_color: '#f3eedd',
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },

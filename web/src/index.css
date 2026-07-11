@@ -1,30 +1,54 @@
 @import 'tailwindcss';
 
+/* Design system: „Stezka" (docs/design/design-system.md).
+   Názvy tokenů zůstávají (utility bg-done, text-ink-faint… fungují dál),
+   mění se jen hodnoty — celá appka se přebarví na mapový papír. */
 @theme {
-  --color-paper: #f6f1e7;
-  --color-paper-warm: #efe7d8;
-  --color-ink: #211a11;
-  --color-ink-soft: #5b5142;
-  --color-ink-faint: #9a8f7c;
-  --color-line: #ddd2bd;
-  --color-done: #2f6b4f;
-  --color-done-soft: #e3ede5;
-  --color-miss: #b3452e;
-  --color-miss-soft: #f4e2da;
-  --color-marker: #f0c94c;
+  --color-paper: #f3eedd; /* mapový papír */
+  --color-paper-warm: #fbf8ec; /* karta úseku */
+  --color-white-warm: #fdfcf6; /* rozcestník, značka, tlačítka */
+  --color-ink: #2a2416;
+  --color-ink-soft: #6a5f48;
+  --color-ink-faint: #a2967b;
+  --color-line: #d8cdad;
+  --color-contour: #ddd3b4;
 
-  --font-display: 'Fraunces', 'Georgia', serif;
-  --font-sans: 'Instrument Sans', system-ui, sans-serif;
-  --font-mono: 'Fragment Mono', monospace;
+  /* stavový kanál (done/rest/miss) */
+  --color-done: #3a7a44;
+  --color-done-soft: #e4eede;
+  --color-miss: #c8371f;
+  --color-miss-soft: #f3ded8;
+  --color-marker: #d9a417; /* odpočívadlo (excused) */
+  --color-marker-soft: #f6ecce;
+  --color-marker-ink: #8a6a12;
+
+  /* barvy značek návyků (identita úseku — samostatný kanál) */
+  --color-trail-red: #c8371f;
+  --color-trail-blue: #2e6b9f;
+  --color-trail-green: #3a7a44;
+  --color-trail-yellow: #d9a417;
+
+  --font-display: 'Zilla Slab', 'Georgia', serif;
+  --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-mono: 'Chivo Mono', ui-monospace, monospace;
 }
 
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  /* jemná papírová textura */
-  background-image: radial-gradient(rgba(33, 26, 17, 0.035) 1px, transparent 1px);
-  background-size: 5px 5px;
+  /* vrstevnice — topografická textura mapy (decentní) */
+  background-image:
+    repeating-radial-gradient(
+      ellipse 700px 500px at -10% -20%,
+      transparent 0 42px,
+      rgba(160, 140, 90, 0.1) 42px 43px
+    ),
+    repeating-radial-gradient(
+      ellipse 820px 600px at 120% 120%,
+      transparent 0 50px,
+      rgba(160, 140, 90, 0.08) 50px 51px
+    );
 }
 
 @keyframes rise {

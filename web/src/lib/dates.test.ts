@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { isoWeekId, logFileName, parseDayLabel, planFileName } from './dates'
+import { isoWeekId, logFileName, parseDayLabel, planFileName, toIsoDate } from './dates'
+
+describe('toIsoDate', () => {
+  test('formats a local date as YYYY-MM-DD with zero padding', () => {
+    expect(toIsoDate(new Date(2026, 6, 9))).toBe('2026-07-09')
+    expect(toIsoDate(new Date(2026, 0, 1))).toBe('2026-01-01')
+  })
+})
 
 describe('isoWeekId', () => {
   test('returns ISO week id for a mid-week date', () => {

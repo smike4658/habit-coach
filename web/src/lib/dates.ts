@@ -24,6 +24,12 @@ export function parseDayLabel(label: string, year: number): Date | null {
   return new Date(year, Number(m[2]) - 1, Number(m[1]))
 }
 
+export function toIsoDate(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${m}-${d}`
+}
+
 export function sameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&

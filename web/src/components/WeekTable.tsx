@@ -1,6 +1,6 @@
 import { sameDay } from '../lib/dates'
 import type { LogDay, WeekPlan } from '../lib/markdown'
-import { statusForColumn } from './TodayCard'
+import { statusForColumn } from './checkinStatus'
 
 const habitEmoji = (text: string) => text.match(/^\p{Extended_Pictographic}/u)?.[0] ?? '•'
 

@@ -47,9 +47,14 @@ export function getHistory(months = 3): Promise<HistoryResponse> {
   return invoke<HistoryResponse>('history', { query: `?months=${months}` })
 }
 
-export function postCheckin(habitSlug: string, status: CheckinStatus, note?: string) {
+export function postCheckin(
+  habitSlug: string,
+  status: CheckinStatus,
+  note?: string,
+  dateIso?: string,
+) {
   return invoke('checkin', {
-    body: { habit_slug: habitSlug, status: toApiStatus(status), note, source: 'web' },
+    body: { habit_slug: habitSlug, status: toApiStatus(status), note, date: dateIso, source: 'web' },
   })
 }
 

@@ -12,8 +12,9 @@ import { useApiDashboard } from './lib/useApiDashboard'
 import { useHistory } from './lib/useHistory'
 import { useHabits } from './lib/useHabits'
 import { apiMode, getSession, postCheckin, postSentence, supabase } from './lib/api'
-import { isoWeekId } from './lib/dates'
+import { isoWeekId, toIsoDate } from './lib/dates'
 import { submitCheckin, submitSentence } from './lib/checkinService'
+import { yesterdayGap } from './lib/backfill'
 import type { CheckinStatus } from './lib/markdown'
 
 const TOKEN_KEY = 'habit-coach.github-token'
@@ -51,6 +52,8 @@ interface ViewProps {
   onRefresh: () => void
   onLogout: () => void
   onCheckin: (column: string, status: CheckinStatus) => void
+  /** Check-in pro libovolný minulý den (backfill z kalendáře). */
+  onBackfillCheckin: (date: Date, column: string, status: CheckinStatus) => void
   onSentence: (sentence: string) => void
   history: HistoryProps
   habits: HabitsProps
@@ -83,7 +86,9 @@ function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
 
 function DashboardView(p: ViewProps) {
   const [tab, setTab] = useState<Tab>('today')
+  const [historyFocus, setHistoryFocus] = useState<Date | null>(null)
   const now = new Date()
+  const gap = p.data?.plan ? yesterdayGap(p.data.plan, p.data.logDays, now) : null
   const formatted = new Intl.DateTimeFormat('cs-CZ', {
     weekday: 'long',
     day: 'numeric',
@@ -119,18 +124,25 @@ function DashboardView(p: ViewProps) {
         </div>
       </header>
 
-      <TabNav tab={tab} onChange={setTab} />
+      <TabNav
+        tab={tab}
+        onChange={(t) => {
+          setHistoryFocus(null)
+          setTab(t)
+        }}
+      />
+
+      {p.saveError && (
+        <div className="mt-4 rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
+          Zápis check-inu selhal: {p.saveError}
+        </div>
+      )}
 
       {tab === 'today' && (
         <main className="mt-8 flex flex-col gap-8">
           {p.error && (
             <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
               Načtení selhalo: {p.error} {p.errorExtra}
-            </div>
-          )}
-          {p.saveError && (
-            <div className="rounded-xl border border-miss bg-miss-soft px-5 py-4 text-sm text-miss">
-              Zápis check-inu selhal: {p.saveError}
             </div>
           )}
 
@@ -147,6 +159,19 @@ function DashboardView(p: ViewProps) {
                   onSentence={p.onSentence}
                   saving={p.saving}
                 />
+                {gap && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHistoryFocus(gap.date)
+                      setTab('history')
+                    }}
+                    className="rounded-xl border border-marker bg-marker/15 px-5 py-3 text-left text-sm text-ink-soft transition-transform active:scale-[0.99]"
+                  >
+                    Včera chybí záznam u {gap.missing.length}{' '}
+                    {gap.missing.length === 1 ? 'návyku' : 'návyků'} — doplnit v kalendáři →
+                  </button>
+                )}
                 <StreakCards streaks={p.data.streaks} />
                 <WeekTable plan={p.data.plan} logDaysByDate={p.data.logDays} now={now} />
                 <p className="text-center font-mono text-[10px] text-ink-faint">
@@ -171,6 +196,10 @@ function DashboardView(p: ViewProps) {
           error={p.history.error}
           from={p.history.from}
           to={p.history.to}
+          columns={p.data?.plan?.columns ?? null}
+          onCheckin={p.onBackfillCheckin}
+          saving={p.saving}
+          focusDate={historyFocus}
         />
       )}
 
@@ -220,11 +249,16 @@ function ApiApp() {
   }, [])
 
   const { data, loading, error, refresh } = useApiDashboard(authed === true)
-  const { saving, saveError, mutate } = useMutation(refresh)
-  const { logDays: historyLogDays, loading: historyLoading, error: historyError } = useHistory(
-    authed === true,
-    HISTORY_MONTHS,
-  )
+  const {
+    logDays: historyLogDays,
+    loading: historyLoading,
+    error: historyError,
+    refresh: refreshHistory,
+  } = useHistory(authed === true, HISTORY_MONTHS)
+  const { saving, saveError, mutate } = useMutation(() => {
+    refresh()
+    refreshHistory()
+  })
   const {
     habits,
     loading: habitsLoading,
@@ -255,6 +289,10 @@ function ApiApp() {
       onCheckin={(column, status) => {
         const slug = data?.slugByColumn?.[column]
         if (slug) mutate(() => postCheckin(slug, status))
+      }}
+      onBackfillCheckin={(date, column, status) => {
+        const slug = data?.slugByColumn?.[column]
+        if (slug) mutate(() => postCheckin(slug, status, undefined, toIsoDate(date)))
       }}
       onSentence={(sentence) => mutate(() => postSentence(sentence))}
       history={{
@@ -324,6 +362,9 @@ function GitHubApp() {
       onRefresh={refresh}
       onLogout={clearToken}
       onCheckin={(column, status) => mutate(() => submitCheckin(token, new Date(), column, status))}
+      onBackfillCheckin={(date, column, status) =>
+        mutate(() => submitCheckin(token, date, column, status))
+      }
       onSentence={(sentence) => mutate(() => submitSentence(token, new Date(), sentence))}
       history={{
         logDays: data?.logDays ?? null,

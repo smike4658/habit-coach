@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { buildHeatmap } from '../lib/heatmap'
 import { computeHistoryStats } from '../lib/historyStats'
-import type { LogDay } from '../lib/markdown'
+import type { CheckinStatus, LogDay } from '../lib/markdown'
 import { CalendarView } from './CalendarView'
 import { HeatmapGrid } from './HeatmapGrid'
 import { HistoryStats } from './HistoryStats'
@@ -14,14 +14,23 @@ export function HistoryView({
   error,
   from,
   to,
+  columns,
+  onCheckin,
+  saving = false,
+  focusDate = null,
 }: {
   logDays: LogDay[] | null
   loading: boolean
   error: string | null
   from: Date
   to: Date
+  columns?: string[] | null
+  onCheckin?: (date: Date, column: string, status: CheckinStatus) => void
+  saving?: boolean
+  /** Den k rovnou otevření v kalendáři (zkratka „Doplnit včerejšek"). */
+  focusDate?: Date | null
 }) {
-  const [mode, setMode] = useState<HistoryMode>('heatmap')
+  const [mode, setMode] = useState<HistoryMode>(focusDate ? 'calendar' : 'heatmap')
 
   return (
     <div className="mt-8 flex flex-col gap-8">
@@ -62,7 +71,15 @@ export function HistoryView({
               {mode === 'heatmap' ? (
                 <HeatmapGrid grid={buildHeatmap(logDays, from, to)} />
               ) : (
-                <CalendarView logDays={logDays} from={from} to={to} />
+                <CalendarView
+                  logDays={logDays}
+                  from={from}
+                  to={to}
+                  columns={columns}
+                  onCheckin={onCheckin}
+                  saving={saving}
+                  initialSelected={focusDate}
+                />
               )}
             </div>
           </section>

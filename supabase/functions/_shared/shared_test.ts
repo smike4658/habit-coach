@@ -5,7 +5,9 @@ import {
   isoWeekId,
   logFileName,
   parseDayLabel,
+  parseIsoDate,
   pragueToday,
+  resolveCheckinDate,
   toIsoDate,
 } from './dates.ts'
 import { parseLog, parseWeekPlan } from './markdown.ts'
@@ -160,4 +162,21 @@ Deno.test('sortHabits puts active first, then alphabetical by name', () => {
   ]
   const sorted = sortHabits(habits)
   assertEquals(sorted.map((h) => h.slug), ['cviceni', 'sachy', 'cteni'])
+})
+
+Deno.test('parseIsoDate: strict YYYY-MM-DD, rejects malformed and impossible dates', () => {
+  assertEquals(toIsoDate(parseIsoDate('2026-07-09')!), '2026-07-09')
+  assertEquals(parseIsoDate('2026-7-9'), null)
+  assertEquals(parseIsoDate('09.07.2026'), null)
+  assertEquals(parseIsoDate('2026-02-30'), null)
+  assertEquals(parseIsoDate(''), null)
+})
+
+Deno.test('resolveCheckinDate: bez vstupu dnešek, minulost OK, budoucnost a nesmysl odmítne', () => {
+  const today = new Date(2026, 6, 11)
+  assertEquals(resolveCheckinDate(undefined, today), today)
+  assertEquals(toIsoDate(resolveCheckinDate('2026-07-09', today) as Date), '2026-07-09')
+  assertEquals(toIsoDate(resolveCheckinDate('2026-07-11', today) as Date), '2026-07-11')
+  assertEquals(resolveCheckinDate('2026-07-12', today), 'future')
+  assertEquals(resolveCheckinDate('zítra', today), 'invalid')
 })

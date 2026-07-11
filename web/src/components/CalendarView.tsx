@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { buildMonthGrid, dayStatus } from '../lib/calendar'
 import type { DayAggregateStatus } from '../lib/calendar'
-import type { LogDay } from '../lib/markdown'
+import type { CheckinStatus, LogDay } from '../lib/markdown'
+import { STATUS_BUTTONS, statusForColumn } from './checkinStatus'
 
 const WEEKDAY_LABELS = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
 
@@ -28,14 +29,26 @@ export function CalendarView({
   logDays,
   from,
   to,
+  columns,
+  onCheckin,
+  saving = false,
+  initialSelected = null,
 }: {
   logDays: LogDay[]
   from: Date
   to: Date
+  /** Sloupce plánu pro editaci minulých dnů; bez nich je detail jen ke čtení. */
+  columns?: string[] | null
+  onCheckin?: (date: Date, column: string, status: CheckinStatus) => void
+  saving?: boolean
+  initialSelected?: Date | null
 }) {
   const today = useMemo(() => new Date(), [])
-  const [cursor, setCursor] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() }))
-  const [selected, setSelected] = useState<Date | null>(null)
+  const [cursor, setCursor] = useState(() => {
+    const base = initialSelected ?? today
+    return { year: base.getFullYear(), month: base.getMonth() }
+  })
+  const [selected, setSelected] = useState<Date | null>(initialSelected)
 
   const grid = useMemo(
     () => buildMonthGrid(cursor.year, cursor.month, logDays, today),
@@ -64,6 +77,17 @@ export function CalendarView({
   const selectedCell = selected
     ? grid.weeks.flat().find((c) => c.date.getTime() === selected.getTime())
     : null
+
+  // Editace: jen dny do dneška včetně, a jen když je odkud vzít sloupce plánu a kam zapsat.
+  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+  const editable = Boolean(
+    onCheckin && columns?.length && selectedCell && selectedCell.date < tomorrow,
+  )
+  const columnEmoji = (col: string) => col.match(/^\p{Extended_Pictographic}/u)?.[0]
+  const extraEntries =
+    selectedCell?.log?.entries.filter(
+      (e) => !(columns ?? []).some((c) => columnEmoji(c) && e.habit.startsWith(columnEmoji(c)!)),
+    ) ?? []
 
   return (
     <div className="rise" style={{ animationDelay: '0.1s' }}>
@@ -126,7 +150,46 @@ export function CalendarView({
                 month: 'long',
               })}
             </div>
-            {selectedCell.log && selectedCell.log.entries.length > 0 ? (
+            {editable ? (
+              <ul className="mt-2 flex flex-col gap-1">
+                {columns!.map((col) => {
+                  const status = statusForColumn(col, selectedCell.log)
+                  const [emoji, name] = splitHabit(col)
+                  return (
+                    <li key={col} className="flex items-center gap-2">
+                      <span className="text-base leading-none">{emoji}</span>
+                      <span className="flex-1 truncate text-ink-soft">{name}</span>
+                      <span className="flex shrink-0 gap-1">
+                        {STATUS_BUTTONS.map((b) => (
+                          <button
+                            key={b.status}
+                            type="button"
+                            disabled={saving}
+                            onClick={() => onCheckin!(selectedCell.date, col, b.status)}
+                            title={b.status}
+                            className={`rounded-lg px-1.5 py-1 text-sm transition-transform active:scale-90 disabled:opacity-40 ${
+                              status === b.status ? b.activeCls : 'opacity-45 hover:opacity-100'
+                            }`}
+                          >
+                            {b.mark}
+                          </button>
+                        ))}
+                      </span>
+                    </li>
+                  )
+                })}
+                {extraEntries.map((e, i) => {
+                  const [emoji, name] = splitHabit(e.habit)
+                  return (
+                    <li key={`extra-${i}`} className="flex items-center gap-2">
+                      <span className="text-base leading-none">{emoji}</span>
+                      <span className="flex-1 truncate text-ink-soft">{name}</span>
+                      <span>{e.status === 'done' ? '✅' : e.status === 'missed' ? '❌' : '➖'}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : selectedCell.log && selectedCell.log.entries.length > 0 ? (
               <ul className="mt-2 flex flex-col gap-1">
                 {selectedCell.log.entries.map((e, i) => {
                   const [emoji, name] = splitHabit(e.habit)

@@ -31,6 +31,27 @@ export function parseDayLabel(label: string, year: number): Date | null {
   return new Date(year, Number(m[2]) - 1, Number(m[1]))
 }
 
+/** Strict ISO date `YYYY-MM-DD` → local Date; null for malformed or impossible dates. */
+export function parseIsoDate(s: string): Date | null {
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!m) return null
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  const date = new Date(y, mo - 1, d)
+  const valid = date.getFullYear() === y && date.getMonth() === mo - 1 && date.getDate() === d
+  return valid ? date : null
+}
+
+/** Check-in date from request body: no input = today; else valid ISO date not in the future. */
+export function resolveCheckinDate(
+  input: string | undefined,
+  today: Date,
+): Date | 'invalid' | 'future' {
+  if (input === undefined) return today
+  const d = parseIsoDate(input)
+  if (!d) return 'invalid'
+  return d.getTime() > today.getTime() ? 'future' : d
+}
+
 /** Local date in Europe/Prague regardless of server timezone. */
 export function pragueToday(now = new Date()): Date {
   const s = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Prague' })

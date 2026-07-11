@@ -1,14 +1,8 @@
 import { useState } from 'react'
 import type { CheckinStatus, LogDay, PlanDay, WeekPlan } from '../lib/markdown'
+import { STATUS_BUTTONS, statusForColumn } from './checkinStatus'
 
 const habitEmoji = (text: string) => text.match(/^\p{Extended_Pictographic}/u)?.[0] ?? null
-
-/** Stav z logu pro sloupec plánu — párování podle emoji návyku. */
-export function statusForColumn(column: string, log: LogDay | null): CheckinStatus | null {
-  const emoji = habitEmoji(column)
-  if (!emoji || !log) return null
-  return log.entries.find((e) => e.habit.startsWith(emoji))?.status ?? null
-}
 
 function Linkified({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s)]+)/g)
@@ -26,12 +20,6 @@ function Linkified({ text }: { text: string }) {
     </>
   )
 }
-
-const STATUS_BUTTONS: { status: CheckinStatus; mark: string; activeCls: string }[] = [
-  { status: 'done', mark: '✅', activeCls: 'bg-done-soft ring-2 ring-done' },
-  { status: 'missed', mark: '❌', activeCls: 'bg-miss-soft ring-2 ring-miss' },
-  { status: 'unplanned', mark: '➖', activeCls: 'bg-paper-warm ring-2 ring-ink-faint' },
-]
 
 export function TodayCard({
   plan,

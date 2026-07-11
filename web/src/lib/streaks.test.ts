@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { computeStreaks } from './streaks'
-import type { LogDay } from './markdown'
+import type { LogDay, WeekPlan } from './markdown'
 
 function day(
   dateStr: string,
@@ -101,5 +101,69 @@ describe('computeStreaks', () => {
     expect(s['💪 Cvičení'].current).toBe(2)
     expect(s['📖 Čtení'].current).toBe(0)
     expect(s['📖 Čtení'].missedTwice).toBe(false)
+  })
+})
+
+describe('computeStreaks with plan — nezaznamenaný plánovaný den = implicitní vynechání', () => {
+  // Reálný případ z 11.7.: plán Po/St/Pá, záznam jen Po ✅ a So ✅ —
+  // streak nesmí být 2, protože St a Pá zůstaly bez záznamu.
+  const PLAN: WeekPlan = {
+    title: '2026-W28',
+    columns: ['💪 Cvičení (10 min)'],
+    days: [
+      { label: 'Po 6.7.', date: new Date(2026, 6, 6), items: ['Trénink A'], note: '', detail: null },
+      { label: 'Út 7.7.', date: new Date(2026, 6, 7), items: [null], note: '', detail: null },
+      { label: 'St 8.7.', date: new Date(2026, 6, 8), items: ['Trénink B'], note: '', detail: null },
+      { label: 'Čt 9.7.', date: new Date(2026, 6, 9), items: [null], note: '', detail: null },
+      { label: 'Pá 10.7.', date: new Date(2026, 6, 10), items: ['Trénink A'], note: '', detail: null },
+      { label: 'So 11.7.', date: new Date(2026, 6, 11), items: [null], note: '', detail: null },
+    ],
+  }
+  const today = new Date(2026, 6, 11, 14, 0)
+
+  test('unrecorded planned days in the past break the streak', () => {
+    const days = [
+      day('2026-07-06', [['💪 Cvičení', 'done']]),
+      day('2026-07-11', [['💪 Cvičení', 'done']]),
+    ]
+    expect(computeStreaks(days, PLAN, today)['💪 Cvičení'].current).toBe(1)
+  })
+
+  test('two unrecorded planned days in a row trigger missedTwice', () => {
+    const days = [day('2026-07-06', [['💪 Cvičení', 'done']])]
+    const s = computeStreaks(days, PLAN, today)['💪 Cvičení']
+    expect(s.current).toBe(0)
+    expect(s.missedTwice).toBe(true)
+  })
+
+  test("today's planned habit without a record stays neutral (day is not over)", () => {
+    const planWithToday: WeekPlan = {
+      ...PLAN,
+      days: PLAN.days.map((d) =>
+        d.label === 'So 11.7.' ? { ...d, items: ['Trénink B'] } : d,
+      ),
+    }
+    const days = [
+      day('2026-07-08', [['💪 Cvičení', 'done']]),
+      day('2026-07-10', [['💪 Cvičení', 'done']]),
+    ]
+    expect(computeStreaks(days, planWithToday, today)['💪 Cvičení'].current).toBe(2)
+  })
+
+  test('excused record on a planned day keeps the streak (no implicit miss)', () => {
+    const days = [
+      day('2026-07-06', [['💪 Cvičení', 'done']]),
+      day('2026-07-08', [['💪 Cvičení', 'excused']]),
+      day('2026-07-10', [['💪 Cvičení', 'done']]),
+    ]
+    expect(computeStreaks(days, PLAN, today)['💪 Cvičení'].current).toBe(2)
+  })
+
+  test('without plan the behaviour stays record-only (backwards compatible)', () => {
+    const days = [
+      day('2026-07-06', [['💪 Cvičení', 'done']]),
+      day('2026-07-11', [['💪 Cvičení', 'done']]),
+    ]
+    expect(computeStreaks(days)['💪 Cvičení'].current).toBe(2)
   })
 })

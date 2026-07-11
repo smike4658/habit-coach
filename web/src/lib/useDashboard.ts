@@ -51,7 +51,7 @@ async function loadDashboard(token: string, now: Date): Promise<Dashboard> {
     today: plan?.days.find((d) => d.date && sameDay(d.date, now)) ?? null,
     todayLog: logDays.find((d) => d.date && sameDay(d.date, now)) ?? null,
     logDays,
-    streaks: computeStreaks(logDays),
+    streaks: computeStreaks(logDays, plan, now),
   }
 }
 

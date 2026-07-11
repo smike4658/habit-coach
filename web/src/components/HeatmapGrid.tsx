@@ -3,12 +3,13 @@ import type { HeatmapGrid as HeatmapGridData } from '../lib/heatmap'
 
 const WEEKDAY_LABELS = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
 
+// Mapa prošlapání: čím tmavší, tím vyšlapanější den (okr → hnědá, docs/design §5).
 const LEVEL_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'bg-white/50 border border-line',
-  1: 'bg-done-soft',
-  2: 'bg-done/40',
-  3: 'bg-done/70',
-  4: 'bg-done',
+  0: 'bg-white/40 border border-line',
+  1: 'bg-[#e5dcbf]',
+  2: 'bg-[#cdbd8d]',
+  3: 'bg-[#a78e52]',
+  4: 'bg-[#7c6534]',
 }
 
 function monthLabel(date: Date): string {

@@ -2,13 +2,13 @@ import { useMemo } from 'react'
 import { computeAchievements } from '../lib/achievements'
 import type { LogDay } from '../lib/markdown'
 
-/** Milníky kontinuity (Habitnaut orbity) — žádné body, jen záznam cesty. */
+/** Milníky kontinuity (razítka na trase) — žádné body, jen záznam cesty. */
 export function AchievementsRow({ logDays }: { logDays: LogDay[] }) {
   const achievements = useMemo(() => computeAchievements(logDays, new Date()), [logDays])
 
   return (
     <section className="rise" style={{ animationDelay: '0.15s' }}>
-      <h2 className="font-mono text-xs tracking-widest text-ink-faint uppercase">Lodní deník</h2>
+      <h2 className="font-mono text-xs tracking-widest text-ink-faint uppercase">Vrcholová kniha</h2>
       <div className="mt-3 grid grid-cols-5 gap-2">
         {achievements.map((a) => (
           <div

@@ -10,6 +10,15 @@ Nápady mimo aktuální fázi (viz design §8 — scope creep jde sem, ne do spr
 - **Web push připomínky** — večerní „v 20:30 bez záznamu → push" (PWA push + Supabase cron + VAPID klíče). Vědomě odloženo jako samostatný infra blok; vyžaduje HTTPS notifikační permission flow na Michalově telefonu. (2026-07-11)
 - **Zrcadlení habits tabulky ↔ system/habits.md** (potřebuje formátové rozhodnutí) — W3.4 dávka B přidala CRUD návyků do UI/DB (Edge Function `habits`), ale zápis se nezrcadlí do `system/habits.md` v data repu. Formát seedu v habits.md (dávky, fáze, poznámky koučem) je bohatší než DB sloupce a pravidlo „markdown vyhrává" (design §3) vyžaduje rozhodnutí, jak to sladit — např. zápis do habits.md při každé CRUD operaci, nebo naopak jen jednosměrný import při startu. Do rozhodnutí je DB pro návyky sekundární (seed pochází z habits.md) a Michal návyky v UI edituje s vědomím, že kouč zůstává zdrojem dávek. (2026-07-06)
 
+- **Cestička s avatarem (raw nápad, Michal 2026-07-11)** — grafická stezka/mapa, avatar
+  poutníka se posune o políčko za splněný den/streak; na trase místa (chata, vyhlídka,
+  studánka…) jako milníky = vizuální podoba odznaků. Guardrail: posun po mapě je
+  prostorový progres (sedí k „prošlapávání"), NE body/XP — držet lekci z Habitica
+  (feature matrix W3.1 „vynechat"). Návrh: milník = razítko do vrcholové knihy.
+  Implementovat až po W3.5 přeoblečení.
+
 ## Později / fáze 4
+- **Potkávání jiných poutníků na trase** (multi-user vrstva nápadu výše) — až s fází 4;
+  vyžaduje sdílený backend a rozhodnutí o soukromí dat.
 - Konfigurovatelné data-repo (jiný uživatel = vlastní repo) — až s multi-user fází.
 - ~~Přejmenovat produkt~~ HOTOVO: **Habitnaut** (W3.2), v UI/manifestu od 2026-07-11. Repo/URL zatím zůstává habit-coach — přesun na nové URL řešit až s fází 4.

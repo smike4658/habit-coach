@@ -155,8 +155,12 @@ nese i pravidla kouče (skip nezlomí streak, 2× po sobě = zásah), ne jen dek
 Pozn. ke jménu: **Habitnaut** unese všechna tři („-naut" = poutník/plavec, nejen kosmo-),
 ale u směru 8 by šlo přirozeně přejmenovat později (viz BACKLOG, fáze 4).
 
-## 5. Další krok
+## 5. Rozhodnutí (2026-07-11)
 
-Michal vybere směr z 10 kandidátů (kola 1–3). Follow-up subagent pak rozpracuje
-vítěze do `docs/design/design-system.md` (plné tokens, typografická škála, spacing,
-všechny stavy komponent, dark/light strategie) — teprve potom startuje přeoblečení UI.
+**Vítěz: Směr 8 — Stezka.** Michal vybral s tím, že metafora má růstový potenciál:
+grafická cestička, avatar postupující o políčko za splněný úkol/streak, místa na trase
+(domy, vyhlídky…), ve fázi multi-user potkávání jiných poutníků. Zapsáno v BACKLOG.md
+jako budoucí vrstva — mapa v IA se na to připravuje, implementace až po W3.5.
+
+Rozpracování: `docs/design/design-system.md` (tokens, škály, stavy komponent,
+stezka-terminologie, dark strategie). Teprve potom přeoblečení UI + e2e (W3.5).

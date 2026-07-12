@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 12: Poutník</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Albert+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 12 — „POUTNÍK" (deník výpravy pro dospělé · perokresba ·
+  výškový profil)
+  Zadání: koncept směru 11 (postava, cesta, osobitost), ale dospělý.
+  Žádný cukr: tlumená zemitá paleta (uhel, oliva, okr, břidlice),
+  tenká linka 1.5–2 px místo komiksového obrysu, literární serif,
+  hodně vzduchu. Reference: Moleskine cestovní deník × katalog
+  outdoorové značky (Fjällräven) × rytina/ex libris.
+
+  POUTNÍK: postava zůstává, ale jako elegantní mono-line perokresba
+  (klobouk se střechou, hůl, batoh) — ilustrace v deníku, ne hračka.
+  Mluví na okraji stránky kurzívou (marginálie), ne bublinou.
+
+  Podpis směru: HISTORIE = VÝŠKOVÝ PROFIL TRASY (expediční zpráva) —
+  křivka posledních 30 dní, milníky jako kóty, poutník stojí na
+  dnešku. Odznaky = ražené štočky (ex libris), ne nášivky.
+
+  TYPOGRAFIE: Spectral (display + marginálie — literární serif
+  s kurzívou) · Albert Sans (tělo/UI) · Spline Sans Mono (kóty, čísla).
+
+  MOTION PRINCIPY:
+  - vše tiché a krátké: fade + 4px posun, žádné bounce
+  - check-in: tečka se zalije inkoustem (radial wipe 180 ms),
+    razítko „zapsáno HH:MM" otiskne s 1° rotací a fade .9→1
+  - profil trasy: křivka se dokreslí (stroke-dashoffset 800 ms,
+    ease-out), poutník pak teprve vystoupí (fade)
+  - marginálie kouče: inkoust „zasychá" (opacity .4→1, 500 ms)
+  - prefers-reduced-motion: okamžité stavy
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --paper: #f4f1e8;
+    --paper-2: #ede9dc;
+    --ink: #26261f;
+    --ink-2: #5c5b4e;
+    --ink-3: #96937f;
+    --rule: #d6d1bd;
+    --olive: #5f6b45;
+    --olive-soft: #e4e6d5;
+    --ochre: #b07a3c;
+    --ochre-soft: #efe3cd;
+    --slate: #48607a;
+    --brick: #9c4a32;
+    --brick-soft: #ecdcd3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Albert Sans', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+    background-image: radial-gradient(rgba(38,38,31,.04) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--brick); }
+  .intro h1 { font-family: 'Spectral', serif; font-weight: 600; font-size: 42px; letter-spacing: -.01em; margin-top: 6px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.6; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(38,38,31,.18); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Spline Sans Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--paper); border-radius: 26px;
+    box-shadow: inset 0 0 0 1px rgba(38,38,31,.16), 0 30px 70px -32px rgba(38,38,31,.5);
+    overflow: hidden; position: relative;
+    background-image: radial-gradient(rgba(38,38,31,.035) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+  .screen { padding: 26px 22px 100px; }
+
+  /* ── hlavička deníku ────────────────────────────────────────── */
+  .masthead { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1.5px solid var(--ink); padding-bottom: 9px; }
+  .masthead .word { font-family: 'Spectral', serif; font-weight: 600; font-size: 17px; letter-spacing: .01em; }
+  .masthead .word i { font-style: normal; color: var(--olive); }
+  .masthead .issue { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: .1em; color: var(--ink-2); text-transform: uppercase; }
+
+  .entry-head { margin-top: 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .entry-head h2 { font-family: 'Spectral', serif; font-weight: 500; font-size: 27px; line-height: 1.05; letter-spacing: -.01em; }
+  .entry-head .no { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; color: var(--ink-3); text-align: right; line-height: 1.5; }
+
+  /* marginálie kouče s poutníkem */
+  .margin-note { margin-top: 16px; display: flex; gap: 13px; align-items: flex-start; }
+  .margin-note .fig { width: 55px; flex: none; opacity: .9; }
+  .margin-note .txt { font-family: 'Spectral', serif; font-style: italic; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: 13px; }
+  .margin-note .txt b { color: var(--ink); font-weight: 600; }
+
+  /* ── ledger návyků ──────────────────────────────────────────── */
+  .ledger { margin-top: 20px; border-top: 1.5px solid var(--ink); }
+  .row { display: flex; align-items: center; gap: 13px; padding: 15px 2px; border-bottom: 1px solid var(--rule); position: relative; }
+  .row .num { font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: var(--ink-3); width: 16px; }
+  .row .body { flex: 1; min-width: 0; }
+  .row .name { font-family: 'Spectral', serif; font-weight: 600; font-size: 16.5px; }
+  .row .plan { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .row .dose { font-family: 'Spline Sans Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-top: 3px; }
+
+  .states { display: flex; gap: 7px; }
+  .st { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--rule); background: transparent; display: grid; place-items: center; color: var(--ink-3); }
+  .st svg { width: 15px; height: 15px; }
+  .st.on-done { border-color: var(--olive); background: var(--olive); color: var(--paper); }
+  .st.on-rest { border-color: var(--ochre); background: var(--ochre-soft); color: var(--ochre); }
+  .st.on-miss { border-color: var(--brick); background: var(--brick-soft); color: var(--brick); }
+
+  .stamp {
+    position: absolute; right: 0; top: 6px; transform: rotate(-1.5deg);
+    font-family: 'Spectral', serif; font-style: italic; font-size: 10.5px; color: var(--olive);
+    border: 1px solid var(--olive); border-radius: 3px; padding: 1px 7px; opacity: .85;
+  }
+
+  .reward-row { display: flex; align-items: center; gap: 13px; padding: 13px 2px; color: var(--ink-2); font-size: 13px; border-bottom: 1px solid var(--rule); }
+  .reward-row .glyph { width: 16px; color: var(--ink-3); }
+  .reward-row .glyph svg { width: 16px; height: 16px; }
+  .reward-row i { font-family: 'Spectral', serif; }
+
+  /* věta dne — řádek deníku */
+  .diary-line { margin-top: 18px; }
+  .diary-line label { font-family: 'Spline Sans Mono', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .diary-line .line { margin-top: 8px; border-bottom: 1px solid var(--ink-3); padding-bottom: 5px; font-family: 'Spectral', serif; font-style: italic; font-size: 16px; color: var(--ink-2); }
+
+  /* bilance dne */
+  .figures { margin-top: 20px; display: flex; }
+  .figure { flex: 1; border-left: 1px solid var(--rule); padding: 2px 0 2px 14px; }
+  .figure:first-child { border-left: 0; padding-left: 2px; }
+  .figure b { font-family: 'Spectral', serif; font-weight: 600; font-size: 20px; display: block; line-height: 1.1; }
+  .figure span { font-size: 10.5px; color: var(--ink-2); }
+  .figure.warn b { color: var(--brick); }
+
+  /* ── nav ────────────────────────────────────────────────────── */
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--paper); border-top: 1px solid var(--ink);
+    padding: 11px 10px calc(13px + env(safe-area-inset-bottom, 8px));
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--ink-3);
+    font-family: 'Spline Sans Mono', monospace; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; }
+  .nav a svg { width: 20px; height: 20px; display: block; margin: 0 auto 4px; }
+  .nav a.active { color: var(--ink); }
+
+  /* ── HISTORIE — výškový profil ──────────────────────────────── */
+  .h-head { margin-top: 20px; }
+  .h-head h2 { font-family: 'Spectral', serif; font-weight: 500; font-size: 26px; letter-spacing: -.01em; }
+  .h-head p { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+
+  .seg { display: flex; margin-top: 16px; border-bottom: 1px solid var(--rule); }
+  .seg span { padding: 7px 14px 8px; font-size: 12px; font-weight: 600; color: var(--ink-3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .seg span.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .profile { margin-top: 18px; }
+  .profile svg { width: 100%; display: block; }
+  .profile .cap { display: flex; justify-content: space-between; margin-top: 8px; font-family: 'Spline Sans Mono', monospace; font-size: 9px; color: var(--ink-3); letter-spacing: .06em; }
+
+  /* ražené štočky (odznaky) */
+  .plates { margin-top: 24px; }
+  .plates h3 { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .plate-row { display: flex; gap: 10px; margin-top: 12px; }
+  .plate { flex: 1; aspect-ratio: 1; border: 1.5px solid var(--ink); border-radius: 4px; display: grid; place-items: center; position: relative; background: var(--paper-2); }
+  .plate:after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(38,38,31,.25); border-radius: 2px; }
+  .plate svg { width: 26px; height: 26px; color: var(--ink); }
+  .plate small { position: absolute; bottom: -19px; left: -6px; right: -6px; text-align: center; font-size: 8.5px; color: var(--ink-2); line-height: 1.15; }
+  .plate.locked { opacity: .3; }
+
+  .h-stats { margin-top: 38px; border-top: 1.5px solid var(--ink); }
+  .h-stat { display: flex; align-items: baseline; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--rule); }
+  .h-stat .nm { flex: 1; font-family: 'Spectral', serif; font-weight: 600; font-size: 15px; }
+  .h-stat .val { font-family: 'Spline Sans Mono', monospace; font-size: 10.5px; color: var(--ink-2); }
+  .h-stat .val b { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 12 · kolo 4</div>
+  <h1>Poutník</h1>
+  <p>Koncept Výpravy (postava, cesta, osobitost) přeložený do dospělého jazyka: cestovní deník ×
+  katalog outdoorové značky × rytina. Poutník zůstává — ale jako mono-line perokresba s kloboukem
+  a holí, ilustrace na okraji stránky, ne hračka. Mluví marginálií kurzívou. Historie je
+  <b>výškový profil trasy</b> jako z expediční zprávy, odznaky jsou ražené štočky. Tenká linka,
+  uhel + oliva + okr, hodně vzduchu, žádný cukr.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Spectral · Albert Sans · Spline Sans Mono</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#f4f1e8"></i><i style="background:#26261f"></i><i style="background:#5f6b45"></i><i style="background:#b07a3c"></i><i style="background:#48607a"></i><i style="background:#9c4a32"></i></span></div>
+    <div><b>Podpis</b>perokresba poutníka · výškový profil · marginálie kouče</div>
+  </div>
+</div>
+
+<!-- Poutník — mono-line perokresba (dospělá verze postavy) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="poutnik" fill="none" stroke="#26261f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <!-- hůl -->
+      <line x1="82" y1="52" x2="88" y2="128"/>
+      <!-- zadní noha v kroku -->
+      <path d="M52 92 q-2 14 -12 24 M40 116 l10 2"/>
+      <!-- přední noha -->
+      <path d="M58 94 q6 12 6 22 M64 116 l11 0"/>
+      <!-- tělo — lehce předkloněné -->
+      <path d="M50 56 q4 22 6 36"/>
+      <!-- batoh -->
+      <path d="M42 58 q-8 2 -8 12 v10 q0 8 9 8 l7 1"/>
+      <path d="M43 68 h-7"/>
+      <!-- paže k holi -->
+      <path d="M52 64 q14 -2 28 -10"/>
+      <!-- hlava -->
+      <circle cx="52" cy="44" r="9"/>
+      <!-- klobouk se střechou -->
+      <path d="M38 40 q14 -7 28 0 M44 39 q1 -8 8 -8 q7 0 8 8"/>
+      <!-- šála ve větru -->
+      <path d="M50 54 q-10 4 -16 1" stroke-width="2"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — zápis č. 192</div>
+  <div class="phone"><div class="screen">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="issue">Deník výpravy · týden 28</span>
+    </div>
+
+    <div class="entry-head">
+      <h2>Sobota<br>11. července</h2>
+      <div class="no">ZÁPIS Č. 192<br>3 ÚSEKY · ~40 MIN</div>
+    </div>
+
+    <div class="margin-note">
+      <svg class="fig" viewBox="0 0 110 132"><use href="#poutnik"/></svg>
+      <p class="txt">Zbývají <b>dva úseky</b> — čtení nech na večer, ať má klid.
+      Šestý den v kuse; jde to dobře.</p>
+    </div>
+
+    <div class="ledger">
+
+      <div class="row">
+        <span class="num">01</span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="plan">Trénink B — kruhy, lehce</div>
+          <div class="dose">10 min</div>
+        </div>
+        <span class="stamp">zapsáno 9.41</span>
+        <div class="states">
+          <span class="st on-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="num">02</span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="plan">Zaklínač, kapitola dál</div>
+          <div class="dose">15 min · večer</div>
+        </div>
+        <div class="states">
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="num">03</span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="plan">Playwright den 6 + zápis</div>
+          <div class="dose">15 min + TIL</div>
+        </div>
+        <span class="stamp" style="color:var(--ochre);border-color:var(--ochre)">tábor — jde se zítra</span>
+        <div class="states">
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="st on-rest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward-row">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><i>Šachy</i> — večerní partie u ohně, jen pro radost. Do bilance se nepočítá.</span>
+      </div>
+
+    </div>
+
+    <div class="diary-line">
+      <label>Věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="figures">
+      <div class="figure"><b>6. den</b><span>bez přerušení</span></div>
+      <div class="figure"><b>86 %</b><span>týdenní bilance</span></div>
+      <div class="figure warn"><b>čtení 2×</b><span>zkrátit úsek?</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 19c3-1 4-4 5-8s2-6 9-7"/><circle cx="19" cy="4" r="1.4" fill="currentColor" stroke="none"/></svg>Zápis</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 17l5-8 4 5 3-3 6 6"/><path d="M3 20h18" opacity=".5"/></svg>Profil</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Úseky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — výškový profil</div>
+  <div class="phone"><div class="screen">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="issue">192 dní na cestě</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Výškový profil</h2>
+      <p>posledních 30 dní · výška = kolik úseků den unesl</p>
+    </div>
+
+    <div class="seg"><span class="on">Profil</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="profile">
+      <svg viewBox="0 0 350 170">
+        <!-- mřížka -->
+        <g stroke="#d6d1bd" stroke-width="1">
+          <line x1="24" y1="30" x2="338" y2="30"/>
+          <line x1="24" y1="70" x2="338" y2="70"/>
+          <line x1="24" y1="110" x2="338" y2="110"/>
+          <line x1="24" y1="150" x2="338" y2="150"/>
+        </g>
+        <g font-family="'Spline Sans Mono', monospace" font-size="8" fill="#96937f">
+          <text x="6" y="33">3/3</text>
+          <text x="6" y="73">2/3</text>
+          <text x="6" y="113">1/3</text>
+          <text x="10" y="153">0</text>
+        </g>
+        <!-- plocha profilu -->
+        <path d="M24 110 L46 70 L68 30 L90 70 L112 30 L134 30 L156 110 L178 70 L200 30 L222 30 L244 70 L266 30 L288 30 L310 70 V150 H24 Z"
+              fill="#5f6b45" opacity=".14"/>
+        <!-- křivka -->
+        <path d="M24 110 L46 70 L68 30 L90 70 L112 30 L134 30 L156 110 L178 70 L200 30 L222 30 L244 70 L266 30 L288 30 L310 70"
+              fill="none" stroke="#26261f" stroke-width="2"/>
+        <!-- dny -->
+        <g fill="#f4f1e8" stroke="#26261f" stroke-width="1.6">
+          <circle cx="68" cy="30" r="3.4"/>
+          <circle cx="156" cy="110" r="3.4"/>
+          <circle cx="200" cy="30" r="3.4"/>
+          <circle cx="266" cy="30" r="3.4"/>
+        </g>
+        <!-- kóta milníku -->
+        <g font-family="'Spline Sans Mono', monospace" font-size="8" fill="#26261f">
+          <line x1="200" y1="30" x2="200" y2="16" stroke="#26261f" stroke-width="1"/>
+          <text x="188" y="12">▲ 28 dní</text>
+        </g>
+        <!-- tábor (skip den) -->
+        <g stroke="#b07a3c" stroke-width="1.6" fill="none">
+          <path d="M240 64 l5 -8 l5 8 z" stroke-linejoin="round"/>
+        </g>
+        <!-- poutník na dnešku -->
+        <g transform="translate(292,8) scale(.42)"><use href="#poutnik"/></g>
+        <!-- osa -->
+        <line x1="24" y1="150" x2="338" y2="150" stroke="#26261f" stroke-width="1.6"/>
+      </svg>
+      <div class="cap"><span>12. VI</span><span>dnes · poutník na kótě 2/3</span></div>
+    </div>
+
+    <div class="plates">
+      <h3>Ražené štočky</h3>
+      <div class="plate-row">
+        <div class="plate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 20c1-6 2-9 6-14 4 5 5 8 6 14" /><path d="M9 14h6" stroke-linecap="round"/></svg>
+          <small>První míle · 7 dní</small>
+        </div>
+        <div class="plate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg>
+          <small>Tábořiště · 28 dní</small>
+        </div>
+        <div class="plate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 6v6l4 3" stroke-linecap="round"/></svg>
+          <small>Zpátky na cestu</small>
+        </div>
+        <div class="plate locked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 19l5-11 4 6 3-4 4 9z"/></svg>
+          <small>Vrchol · 30 dní</small>
+        </div>
+        <div class="plate locked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M8 5v14M4 11h16" opacity=".55"/></svg>
+          <small>Dálková trasa</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · nejdelší řada 9</span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · nejdelší řada 5</span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · nejdelší řada 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 19c3-1 4-4 5-8s2-6 9-7"/><circle cx="19" cy="4" r="1.4" fill="currentColor" stroke="none"/></svg>Zápis</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 17l5-8 4 5 3-3 6 6"/><path d="M3 20h18" opacity=".5"/></svg>Profil</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Úseky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

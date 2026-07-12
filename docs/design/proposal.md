@@ -187,3 +187,28 @@ dávky 1–3, cca den práce; alternativa = hybrid: vzít Šlápotu a samolepky 
 
 **Čeká na rozhodnutí Michala:** (a) zůstat u Stezky, (b) pivot na Výpravu,
 (c) hybrid Stezka + Šlápota (maskot, bublina kouče, samolepky na Stezka podkladu).
+
+### Směr 12 — „Poutník" (dospělá varianta, 2026-07-12)
+
+Mockup: `docs/design/mockups/smer-12.html`. Reakce na zpětnou vazbu ke směru 11:
+„vypadá pěkně, ale působí jako aplikace pro děti — udělej pro dospělé."
+
+Stejný koncept (postava, cesta, osobitost), dospělý jazyk: **cestovní deník ×
+katalog outdoorové značky × rytina**. Tenká mono-linka 1.5–2.4 px místo komiksového
+obrysu, tlumená zemitá paleta (uhel `#26261f`, oliva `#5f6b45`, okr `#b07a3c`,
+břidlice, cihlová), literární typografie **Spectral** (+ Albert Sans, Spline Sans
+Mono), hodně vzduchu, tenké linky místo karet (ledger s čísly zápisů).
+
+Postava zůstává: **Poutník** — mono-line perokresba s kloboukem, holí a batohem;
+ilustrace na okraji stránky (marginálie kouče kurzívou), ne hračka. Check-in =
+inkoustové razítko „zapsáno 9.41", skip = „tábor — jde se zítra" (okrové razítko).
+**Podpis směru: Historie = výškový profil trasy** (expediční zpráva — křivka 30 dní,
+kóty milníků, poutník stojí na dnešku). Odznaky = ražené štočky (ex libris).
+
+Pro: dospělost bez ztráty osobitosti; výškový profil je unikátní vizualizace
+(žádný tracker ji nemá); nejblíž „deníkovému" duchu projektu (git/markdown deník).
+Proti: postava je decentnější (menší brand-přítomnost než Šlápota); serif +
+tenké linky chtějí disciplínu při implementaci; méně hravé mikrointerakce.
+
+Volba se tedy rozšiřuje: (a) Stezka · (b) Výprava (cartoon) · (c) hybrid
+Stezka+Šlápota · **(d) Poutník (dospělý)** · (e) hybrid Stezka+Poutník.

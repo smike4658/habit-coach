@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 11: Výprava</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Gantari:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 11 — „VÝPRAVA" (cartoon výprava · maskot Šlápota · samolepky)
+  Zadání: originalita směru 3 (odvaha, tlusté obrysy, odznaky), téma
+  cesty volně, osobitost, cartoon/anime. Maskot = malý poutníček
+  ŠLÁPOTA — sourozenec Kafkanauta (chibi proporce, velká hlava,
+  tečkované oči, bold obrys), ale pozemský: kulich, batoh, hůlka.
+  Šlápota je zároveň budoucí avatar na cestičce (BACKLOG nápad) —
+  postavička, co se posouvá po mapě, tady žije už od prvního dne.
+
+  Jazyk UI: den = výprava, návyk = úsek, check-in = samolepka
+  HOTOVO!, skip = stan (táboříme, jde se zítra), streak = „X dní
+  v kuse", kouč mluví bublinou u maskota.
+
+  STYL: cel-shade komiks — obrysy 2.5–3px, ploché barvy, tvrdé
+  offset stíny (4px), samolepkové hvězdice, žádný gradient. Anime
+  „yuru" pohoda (Yuru Camp / Hilda), ne dětinskost: hodně krému
+  a vzduchu, barvy zemité s bonbónovými akcenty.
+
+  TYPOGRAFIE: Baloo 2 (display + čísla — kulaťoučká, přátelská) ·
+  Gantari (tělo — čistý humanistický grotesk, ať to není přeslazené).
+
+  MOTION PRINCIPY:
+  - Šlápota: idle bob 3s (translateY ±2px) + mrknutí co ~4s;
+    při check-inu poskočí (squash & stretch 300 ms) a mávne
+  - samolepka HOTOVO!: pop-in scale 0→1.15→1 s rotací -8°, 260 ms
+  - stan (skip): vyroste zespodu (scaleY 0→1, origin bottom, 220 ms)
+  - karty: press = squash (scale .96, stín zkrátí na 2px)
+  - bublina kouče: typewriter po znacích (HabitBee vzor)
+  - cestička v Historii: stroke-dashoffset dokreslení 900 ms
+  - prefers-reduced-motion: vše statické, bublina naráz
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --cream: #fdf4e3;
+    --card: #fffdf6;
+    --ink: #2b2118;
+    --ink-2: #6d5c49;
+    --ink-3: #a89579;
+    --grass: #6fa25c;
+    --grass-soft: #e2eed4;
+    --sky: #79bde2;
+    --sky-soft: #ddeef8;
+    --sun: #f7c948;
+    --sun-soft: #fbeec7;
+    --flame: #ec7a45;
+    --berry: #d4566b;
+    --berry-soft: #f8dfe0;
+    --shadow: 4px 4px 0 var(--ink);
+    --shadow-sm: 3px 3px 0 var(--ink);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream); color: var(--ink);
+    font-family: 'Gantari', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+    background-image: radial-gradient(rgba(43,33,24,.05) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--flame); }
+  .intro h1 { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -.01em; line-height: 1; margin-top: 4px; }
+  .intro p { max-width: 66ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 8px; border: 2px solid var(--ink); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--cream); border-radius: 34px;
+    border: 3px solid var(--ink); box-shadow: 8px 8px 0 rgba(43,33,24,.2);
+    overflow: hidden; position: relative;
+    background-image: radial-gradient(rgba(43,33,24,.045) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .screen { padding: 20px 16px 104px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .wordmark { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -.01em; }
+  .wordmark span { color: var(--flame); }
+  .day-chip { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 11px; background: var(--card); border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; box-shadow: var(--shadow-sm); }
+
+  /* ── scéna s maskotem ───────────────────────────────────────── */
+  .scene {
+    margin-top: 14px; position: relative; border: 2.5px solid var(--ink); border-radius: 22px;
+    background: var(--sky-soft); box-shadow: var(--shadow); overflow: hidden; height: 158px;
+  }
+  .scene .hill { position: absolute; inset: auto 0 0 0; height: 74px; }
+  .scene .bubble {
+    position: absolute; top: 13px; left: 14px; max-width: 205px;
+    background: var(--card); border: 2.5px solid var(--ink); border-radius: 16px 16px 16px 4px;
+    padding: 9px 12px; font-size: 12.5px; font-weight: 500; line-height: 1.35;
+    box-shadow: var(--shadow-sm); z-index: 2;
+  }
+  .bubble b { font-weight: 700; }
+  .mascot { position: absolute; right: 12px; bottom: 6px; width: 118px; z-index: 2; }
+
+  /* checkpoint vlaječky na kopci */
+  .flags { position: absolute; left: 16px; bottom: 12px; display: flex; gap: 26px; z-index: 1; }
+  .flag { width: 26px; height: 44px; position: relative; }
+  .flag i { position: absolute; left: 11px; top: 0; bottom: 0; width: 3px; background: var(--ink); border-radius: 2px; }
+  .flag s { position: absolute; left: 13px; top: 2px; width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 15px; border-color: transparent transparent transparent var(--grass); filter: drop-shadow(1.5px 1.5px 0 var(--ink)); }
+  .flag.done s { border-left-color: var(--grass); }
+  .flag.todo s { border-left-color: #cfc4ad; }
+  .flag.rest s { border-left-color: var(--sun); }
+
+  /* ── karta úseku ────────────────────────────────────────────── */
+  .legs { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .leg {
+    position: relative; background: var(--card); border: 2.5px solid var(--ink); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 13px 13px 13px 14px; display: flex; align-items: center; gap: 12px;
+  }
+  .doodle { width: 46px; height: 46px; flex: none; border: 2.5px solid var(--ink); border-radius: 15px;
+    display: grid; place-items: center; }
+  .doodle svg { width: 26px; height: 26px; }
+  .doodle.grass { background: var(--grass-soft); }
+  .doodle.sky { background: var(--sky-soft); }
+  .doodle.sun { background: var(--sun-soft); }
+  .doodle.berry { background: var(--berry-soft); }
+
+  .leg .body { flex: 1; min-width: 0; }
+  .leg .name { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 16px; line-height: 1.1; }
+  .leg .dose { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+
+  .btns { display: flex; gap: 6px; }
+  .btn { width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid var(--ink); background: var(--card);
+    display: grid; place-items: center; color: var(--ink-3); box-shadow: 2px 2px 0 var(--ink); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn.on-done { background: var(--grass); color: #fff; }
+  .btn.on-rest { background: var(--sun); color: var(--ink); }
+  .btn.on-miss { background: var(--berry); color: #fff; }
+  .btn.flat { box-shadow: none; transform: translate(2px,2px); }
+
+  /* samolepka HOTOVO! */
+  .sticker {
+    position: absolute; top: -13px; right: 14px; transform: rotate(-7deg);
+    font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 10px; letter-spacing: .06em;
+    background: var(--grass); color: #fff; border: 2.5px solid var(--ink); border-radius: 999px;
+    padding: 3px 10px; box-shadow: 2px 2px 0 var(--ink);
+  }
+  .sticker.tent { background: var(--sun); color: var(--ink); }
+
+  .reward {
+    display: flex; align-items: center; gap: 11px; border: 2.5px dashed var(--ink-3); border-radius: 20px;
+    padding: 11px 14px; font-size: 12.5px; color: var(--ink-2); background: rgba(247,201,72,.12);
+  }
+  .reward b { color: var(--ink); font-weight: 700; }
+
+  /* ── věta dne — bublina ─────────────────────────────────────── */
+  .say { margin-top: 16px; display: flex; align-items: flex-end; gap: 10px; }
+  .say .mini { width: 44px; flex: none; }
+  .say .field {
+    flex: 1; background: var(--card); border: 2.5px solid var(--ink); border-radius: 18px 18px 18px 5px;
+    padding: 11px 14px; box-shadow: var(--shadow-sm);
+  }
+  .say .field label { display: block; font-family: 'Baloo 2', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .say .field .txt { margin-top: 3px; font-size: 14px; font-style: italic; color: var(--ink-2); }
+
+  /* streak chip */
+  .streak-strip { margin-top: 16px; display: flex; gap: 10px; }
+  .chip { flex: 1; background: var(--card); border: 2.5px solid var(--ink); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 9px 12px; }
+  .chip b { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 20px; display: block; line-height: 1; }
+  .chip span { font-size: 10.5px; color: var(--ink-2); }
+  .chip.warn { background: var(--berry-soft); }
+  .chip.warn b { color: var(--berry); }
+
+  /* ── nav ────────────────────────────────────────────────────── */
+  .nav {
+    position: absolute; left: 14px; right: 14px; bottom: 12px; display: flex;
+    background: var(--card); border: 2.5px solid var(--ink); border-radius: 999px;
+    padding: 8px 10px; box-shadow: var(--shadow);
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--ink-3);
+    font-family: 'Baloo 2', sans-serif; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .nav a svg { width: 22px; height: 22px; display: block; margin: 0 auto 1px; }
+  .nav a.active { color: var(--ink); }
+  .nav a.active svg { color: var(--flame); }
+
+  /* ── HISTORIE ───────────────────────────────────────────────── */
+  .h-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 26px; margin-top: 16px; line-height: 1.05; }
+  .h-sub { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .seg { display: flex; gap: 5px; background: var(--card); border: 2.5px solid var(--ink); border-radius: 999px; padding: 4px; margin-top: 14px; box-shadow: var(--shadow-sm); }
+  .seg span { flex: 1; text-align: center; font-family: 'Baloo 2', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 0; border-radius: 999px; color: var(--ink-3); }
+  .seg span.on { background: var(--ink); color: var(--cream); }
+
+  .journey { margin-top: 14px; border: 2.5px solid var(--ink); border-radius: 22px; background: var(--card); box-shadow: var(--shadow); padding: 10px 8px 6px; }
+  .journey svg { width: 100%; display: block; }
+  .journey .cap { display: flex; justify-content: space-between; padding: 4px 10px 6px; font-size: 10.5px; color: var(--ink-2); }
+
+  .patches { margin-top: 16px; }
+  .patches h3 { font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .patch-row { display: flex; gap: 9px; margin-top: 10px; }
+  .patch { flex: 1; aspect-ratio: 1; border: 2.5px solid var(--ink); border-radius: 50%; display: grid; place-items: center; text-align: center; position: relative; background: var(--card); box-shadow: var(--shadow-sm); }
+  .patch svg { width: 30px; height: 30px; }
+  .patch small { position: absolute; bottom: -18px; left: -6px; right: -6px; font-size: 8.5px; font-weight: 700; color: var(--ink-2); line-height: 1.1; }
+  .patch.earned { background: var(--sun-soft); }
+  .patch.locked { opacity: .35; filter: grayscale(1); box-shadow: none; }
+
+  .stats { margin-top: 34px; display: flex; flex-direction: column; gap: 9px; }
+  .stat { display: flex; align-items: center; gap: 11px; border: 2.5px solid var(--ink); border-radius: 16px; background: var(--card); box-shadow: var(--shadow-sm); padding: 9px 13px; }
+  .stat .dot { width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--ink); flex: none; }
+  .stat .nm { flex: 1; font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px; }
+  .stat .val { font-size: 12px; color: var(--ink-2); }
+  .stat .val b { color: var(--ink); font-family: 'Baloo 2', sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 11 · kolo 4</div>
+  <h1>Výprava</h1>
+  <p>Cartoon výprava s maskotem. <b>Šlápota</b> — malý poutníček s kulichem, batohem a hůlkou —
+  je sourozenec Kafkanauta (stejné chibi proporce a tečkované oči), ale pozemský. Mluví za kouče
+  bublinou, raduje se z check-inů a jednou bude chodit po mapě jako tvůj avatar. Cel-shade komiks:
+  tlusté obrysy, ploché barvy, samolepky HOTOVO!, skip = stan (táboříme). Odvaha směru 3, nula retra.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Baloo 2 · Gantari</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#fdf4e3"></i><i style="background:#2b2118"></i><i style="background:#6fa25c"></i><i style="background:#79bde2"></i><i style="background:#f7c948"></i><i style="background:#ec7a45"></i><i style="background:#d4566b"></i></span></div>
+    <div><b>Podpis</b>maskot Šlápota · samolepky · nášivky skautských odznaků</div>
+  </div>
+</div>
+
+<!-- Šlápota — definice postavičky (chibi: velká hlava, malé tělo, bold obrys) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="slapota">
+      <!-- stín -->
+      <ellipse cx="70" cy="143" rx="30" ry="6" fill="rgba(43,33,24,.15)"/>
+      <!-- hůlka -->
+      <line x1="108" y1="70" x2="112" y2="138" stroke="#8a5a3b" stroke-width="5" stroke-linecap="round"/>
+      <line x1="108" y1="70" x2="112" y2="138" stroke="#2b2118" stroke-width="1.4" stroke-linecap="round" opacity=".25"/>
+      <circle cx="108" cy="68" r="5" fill="#f7c948" stroke="#2b2118" stroke-width="2.5"/>
+      <!-- zadní noha (krok) -->
+      <path d="M60 118 q-3 12 -8 16" fill="none" stroke="#2b2118" stroke-width="10" stroke-linecap="round"/>
+      <path d="M48 133 q6 5 14 3" fill="none" stroke="#7a4a2f" stroke-width="9" stroke-linecap="round"/>
+      <!-- batoh -->
+      <rect x="34" y="78" width="26" height="36" rx="11" fill="#d4566b" stroke="#2b2118" stroke-width="2.8"/>
+      <rect x="40" y="86" width="14" height="9" rx="4" fill="#f7c948" stroke="#2b2118" stroke-width="2.2"/>
+      <!-- karimatka na batohu -->
+      <rect x="33" y="70" width="28" height="9" rx="4.5" fill="#79bde2" stroke="#2b2118" stroke-width="2.4"/>
+      <!-- tělo (bundička) -->
+      <path d="M56 80 h26 q10 0 10 12 v18 q0 12 -12 12 h-22 q-12 0 -12 -12 v-18 q0 -12 10 -12z" fill="#ec7a45" stroke="#2b2118" stroke-width="2.8"/>
+      <!-- zip -->
+      <line x1="70" y1="84" x2="70" y2="118" stroke="#2b2118" stroke-width="2" stroke-dasharray="1 4" stroke-linecap="round"/>
+      <!-- přední noha -->
+      <path d="M80 120 q2 10 1 14" fill="none" stroke="#2b2118" stroke-width="10" stroke-linecap="round"/>
+      <path d="M74 136 q7 4 15 1" fill="none" stroke="#7a4a2f" stroke-width="9" stroke-linecap="round"/>
+      <!-- ruka k hůlce -->
+      <path d="M88 92 q14 -4 18 -16" fill="none" stroke="#ec7a45" stroke-width="10" stroke-linecap="round"/>
+      <path d="M88 92 q14 -4 18 -16" fill="none" stroke="#2b2118" stroke-width="12.5" stroke-linecap="round" opacity="0"/>
+      <path d="M88 92 q14 -4 18 -16" fill="none" stroke="#2b2118" stroke-width="2.6" stroke-linecap="round" transform="translate(0,-5.2)"/>
+      <path d="M88 92 q14 -4 18 -16" fill="none" stroke="#2b2118" stroke-width="2.6" stroke-linecap="round" transform="translate(1,5)"/>
+      <circle cx="107" cy="74" r="6" fill="#ffe3c2" stroke="#2b2118" stroke-width="2.4"/>
+      <!-- hlava -->
+      <circle cx="68" cy="46" r="32" fill="#ffe3c2" stroke="#2b2118" stroke-width="3"/>
+      <!-- kulich -->
+      <path d="M37 40 q4 -26 31 -26 q27 0 31 26 q-14 -8 -31 -8 q-17 0 -31 8z" fill="#79bde2" stroke="#2b2118" stroke-width="2.8" stroke-linejoin="round"/>
+      <path d="M39 38 q13 -7 29 -7 q16 0 29 7 l1.5 7 q-15 -8 -30.5 -8 q-15.5 0 -30.5 8z" fill="#5ea3cd" stroke="#2b2118" stroke-width="2.4" stroke-linejoin="round"/>
+      <circle cx="68" cy="10" r="7.5" fill="#fffdf6" stroke="#2b2118" stroke-width="2.6"/>
+      <!-- oči — tečky jako Kafkanaut -->
+      <circle cx="57" cy="50" r="3.4" fill="#2b2118"/>
+      <circle cx="81" cy="50" r="3.4" fill="#2b2118"/>
+      <!-- tvářičky -->
+      <circle cx="50" cy="58" r="4.5" fill="#f6b1a0" opacity=".85"/>
+      <circle cx="88" cy="58" r="4.5" fill="#f6b1a0" opacity=".85"/>
+      <!-- pusa -->
+      <path d="M64 60 q5 5 10 0" fill="none" stroke="#2b2118" stroke-width="2.6" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — výprava dne</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <div class="wordmark">habit<span>naut</span></div>
+      <div class="day-chip">So 11. 7. · týden 28</div>
+    </div>
+
+    <div class="scene">
+      <div class="bubble">Zbývají <b>dva úseky</b> — čtení máš dneska na večer. Zvládneme to! ⛺</div>
+      <svg class="hill" viewBox="0 0 390 74" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 40 Q80 6 190 30 T390 22 V74 H0 Z" fill="#6fa25c"/>
+        <path d="M0 40 Q80 6 190 30 T390 22" fill="none" stroke="#2b2118" stroke-width="3"/>
+        <path d="M18 58 q30 -8 70 -6 q60 3 120 -8" fill="none" stroke="#fdf4e3" stroke-width="4" stroke-dasharray="7 8" stroke-linecap="round" opacity=".9"/>
+      </svg>
+      <div class="flags">
+        <div class="flag done"><i></i><s></s></div>
+        <div class="flag rest"><i></i><s></s></div>
+        <div class="flag todo"><i></i><s></s></div>
+      </div>
+      <svg class="mascot" viewBox="0 0 140 150"><use href="#slapota"/></svg>
+    </div>
+
+    <div class="legs">
+
+      <div class="leg">
+        <span class="sticker">HOTOVO! ✓</span>
+        <div class="doodle grass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2.2" stroke-linecap="round"><path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10"/></svg>
+        </div>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="dose">Trénink B — kruhy, lehce · 10 min</div>
+        </div>
+        <div class="btns">
+          <span class="btn on-done flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="leg">
+        <div class="doodle sky">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2.2" stroke-linejoin="round"><path d="M12 6c-2-1.6-5-1.6-8-.8V19c3-.8 6-.8 8 .8 2-1.6 5-1.6 8-.8V5.2c-3-.8-6-.8-8 .8Z M12 6v13.5"/></svg>
+        </div>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="dose">Zaklínač, kapitola dál · 15 min</div>
+        </div>
+        <div class="btns">
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="leg">
+        <span class="sticker tent">⛺ TÁBOŘÍME</span>
+        <div class="doodle sun">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3l2 4.5L19 9l-4 3 1 5-4-2.5L8 17l1-5-4-3 5-1.5Z"/></svg>
+        </div>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="dose">Playwright den 6 + zápis · 15 min</div>
+        </div>
+        <div class="btns">
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="btn on-rest flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg></span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward">
+        <div class="doodle berry" style="width:38px;height:38px;border-radius:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="3"/><path d="M10 9.5c.5 3-1 5.5-2.5 8h9c-1.5-2.5-3-5-2.5-8"/><path d="M6 20.5h12"/></svg>
+        </div>
+        <span><b>Šachy</b> — bonusová zastávka u ohně. Jen když máš chuť!</span>
+      </div>
+
+    </div>
+
+    <div class="say">
+      <svg class="mini" viewBox="0 0 140 150"><use href="#slapota"/></svg>
+      <div class="field">
+        <label>Jak bylo dneska?</label>
+        <div class="txt">dneska to šlo samo…</div>
+      </div>
+    </div>
+
+    <div class="streak-strip">
+      <div class="chip"><b>6 dní</b><span>v kuse na cestě 🔥</span></div>
+      <div class="chip"><b>86 %</b><span>týdenní výprava</span></div>
+      <div class="chip warn"><b>čtení 2×</b><span>zkrátíme úsek?</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 19c4-1 5-5 6-9s2-6 10-7"/><circle cx="20" cy="4" r="1.8" fill="currentColor" stroke="none"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M6 16c2-3 3-6 7-7" stroke-linecap="round"/></svg>Cesta</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/><circle cx="18" cy="17" r="2.6"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Cesta — deník výpravy</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <div class="wordmark">habit<span>naut</span></div>
+      <div class="day-chip">192 dní na cestě</div>
+    </div>
+
+    <div class="h-title">Tvoje cesta</div>
+    <div class="h-sub">každý den jeden krok · Šlápota stojí na dnešku</div>
+
+    <div class="seg"><span class="on">Cesta</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="journey">
+      <svg viewBox="0 0 350 190">
+        <!-- kopce v pozadí -->
+        <path d="M0 150 Q60 108 120 132 T240 122 T350 132 V190 H0 Z" fill="#e2eed4"/>
+        <path d="M0 150 Q60 108 120 132 T240 122 T350 132" fill="none" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="300" cy="40" r="17" fill="#f7c948" stroke="#2b2118" stroke-width="2.6"/>
+        <!-- cesta -->
+        <path id="trailpath" d="M22 168 Q80 150 96 122 T170 96 T236 116 T312 84" fill="none" stroke="#2b2118" stroke-width="4" stroke-dasharray="9 9" stroke-linecap="round"/>
+        <!-- kroky (dny): plný = zapsaný den, prázdný = mezera -->
+        <circle cx="42" cy="160" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="68" cy="146" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="90" cy="128" r="6.5" fill="#f7c948" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="116" cy="110" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="144" cy="100" r="6.5" fill="#fffdf6" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="172" cy="97" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="200" cy="103" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <circle cx="228" cy="112" r="6.5" fill="#6fa25c" stroke="#2b2118" stroke-width="2.4"/>
+        <!-- milník: tábořiště -->
+        <path d="M244 96 l10 -16 l10 16 z" fill="#79bde2" stroke="#2b2118" stroke-width="2.4" stroke-linejoin="round"/>
+        <line x1="254" y1="88" x2="254" y2="96" stroke="#2b2118" stroke-width="2"/>
+        <!-- Šlápota na dnešku -->
+        <g transform="translate(268,28) scale(.62)"><use href="#slapota"/></g>
+      </svg>
+      <div class="cap"><span>← červen</span><span>● den se záznamem · ⛺ milník · dnes →</span></div>
+    </div>
+
+    <div class="patches">
+      <h3>Nášivky z cesty</h3>
+      <div class="patch-row">
+        <div class="patch earned">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><path d="M6 20c1-6 2-9 6-14 4 5 5 8 6 14" stroke-linejoin="round"/><path d="M9 14h6" stroke-linecap="round"/></svg>
+          <small>První míle<br>7 dní</small>
+        </div>
+        <div class="patch earned">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2" stroke-linejoin="round"><path d="M12 5L3 19h18Z M12 11v8"/></svg>
+          <small>Tábořiště<br>28 dní</small>
+        </div>
+        <div class="patch earned">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 6v6l4 3" stroke-linecap="round"/></svg>
+          <small>Zpátky<br>na cestu</small>
+        </div>
+        <div class="patch locked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2" stroke-linejoin="round"><path d="M4 19l5-11 4 6 3-4 4 9z"/></svg>
+          <small>Vrchol<br>30 dní</small>
+        </div>
+        <div class="patch locked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 5v14M4 11h16" opacity=".6"/></svg>
+          <small>Dálková<br>trasa 100</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="dot" style="background:#6fa25c"></span><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · nejdelší 9</span></div>
+      <div class="stat"><span class="dot" style="background:#79bde2"></span><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · nejdelší 5</span></div>
+      <div class="stat"><span class="dot" style="background:#f7c948"></span><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · nejdelší 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 19c4-1 5-5 6-9s2-6 10-7"/><circle cx="20" cy="4" r="1.8" fill="currentColor" stroke="none"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M6 16c2-3 3-6 7-7" stroke-linecap="round"/></svg>Cesta</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/><circle cx="18" cy="17" r="2.6"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

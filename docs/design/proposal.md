@@ -164,3 +164,26 @@ jako budoucí vrstva — mapa v IA se na to připravuje, implementace až po W3.
 
 Rozpracování: `docs/design/design-system.md` (tokens, škály, stavy komponent,
 stezka-terminologie, dark strategie). Teprve potom přeoblečení UI + e2e (W3.5).
+
+## 6. Kolo 4 — Výprava s maskotem (2026-07-12)
+
+Mockup: `docs/design/mockups/smer-11.html`. Kontext: W3.5 dávky 1–3 (Stezka) už
+jsou nasazené, ale Michal po zhlédnutí označil za nejoriginálnější **směr 3** a chtěl
+ještě jeden pokus se stejnou odvahou: téma cesty volně, osobitost, cartoon/anime,
+maskot ve stylu Kafkanauta (jeho druhá appka — chibi astronaut).
+
+**Směr 11 — „Výprava"**: cel-shade komiks (obrysy 2.5–3 px, ploché barvy, tvrdé
+offset stíny, samolepky), maskot **Šlápota** — chibi poutníček s kulichem, batohem
+a hůlkou; sourozenec Kafkanauta (stejné proporce a tečkované oči), ale pozemský.
+Šlápota mluví za kouče bublinou, check-in = samolepka HOTOVO!, skip = ⛺ TÁBOŘÍME,
+odznaky = nášivky, Historie = ilustrovaná cesta s kroky a milníky, po které Šlápota
+jde → přímá příprava na Michalův avatar-nápad (BACKLOG). Typografie Baloo 2 + Gantari.
+
+Pro: nejosobitější ze všech 11 (postava = tvář značky, spojení s Kafkanautem do
+rodiny appek), avatar-vrstva zdarma, koučovy hlášky dostávají mluvčího.
+Proti: nejdražší na implementaci (ilustrace, scény, animace postavy), cartoon může
+časem unavit u seriózního nástroje, nejdál od nasazené Stezky (pivot = přepsat
+dávky 1–3, cca den práce; alternativa = hybrid: vzít Šlápotu a samolepky do Stezky).
+
+**Čeká na rozhodnutí Michala:** (a) zůstat u Stezky, (b) pivot na Výpravu,
+(c) hybrid Stezka + Šlápota (maskot, bublina kouče, samolepky na Stezka podkladu).

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 13: Herbář</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Mulish:ital,wght@0,400;0,500;0,700;1,400&family=Courier+Prime:ital@0;1&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 13 — „HERBÁŘ" (botanická deska · návyk jako rostlina)
+  Metafora-základ: návyk se pěstuje. Neroste rychle a neroste na
+  povel — roste každodenní péčí. Týden = lodyha se sedmi uzlinami:
+  plný lístek = den zapsán, poupě = klid (skip — rostlina odpočívá,
+  neusychá), prázdná uzlina = vynecháno. Jeden suchý list rostlinu
+  nezabije; dva po sobě = potřebuje zásah zahradníka (kouč).
+
+  Vizuální jazyk: vědecká botanická ilustrace 19. století — rytina,
+  krémový papír, latinské štítky psacím strojem, určovací lístky,
+  číslované desky (Tab. XXVIII = týden 28). Žádná gamifikace, žádný
+  kýč — Kew Gardens, ne FarmVille.
+
+  TYPOGRAFIE: EB Garamond (display + latinská kurzíva) · Mulish
+  (tělo/UI) · Courier Prime (štítky psacím strojem).
+
+  MOTION PRINCIPY:
+  - lístek se při check-inu rozvine (scale 0→1 z uzliny, rotace -8°→0,
+    320 ms, ease-out) — jediný „živý" moment, jinak klid
+  - poupě (skip): jemně se zavře (scaleY 1→.85, 200 ms)
+  - razítko určení („zapsáno 9.41") otisk s fade .85→1
+  - herbářová deska v historii: rostlina se dokreslí stonkem vzhůru
+    (stroke-dashoffset, 900 ms), listy pak stagger 40 ms
+  - prefers-reduced-motion: statické stavy
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --paper: #f6f2e4;
+    --paper-2: #efe9d5;
+    --ink: #33301f;
+    --ink-2: #6b6650;
+    --ink-3: #a29b7f;
+    --rule: #d9d2b8;
+    --leaf: #4a6741;
+    --leaf-soft: #e2e8d6;
+    --bud: #b98a34;
+    --bud-soft: #f0e6c8;
+    --dry: #a34d2f;
+    --dry-soft: #eeddd2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Mulish', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Courier Prime', monospace; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--dry); }
+  .intro h1 { font-family: 'EB Garamond', serif; font-weight: 600; font-size: 44px; letter-spacing: 0; margin-top: 4px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.6; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .meta b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(51,48,31,.2); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--paper); border-radius: 26px;
+    box-shadow: inset 0 0 0 1px rgba(51,48,31,.16), 0 30px 70px -32px rgba(51,48,31,.5);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 24px 22px 100px; }
+
+  /* dvojitá linka herbářové desky */
+  .plate-frame { border: 1px solid var(--ink); outline: 1px solid var(--ink); outline-offset: 3px; margin: 3px; border-radius: 2px; padding: 18px 16px 14px; position: relative; background: transparent; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; }
+  .word { font-family: 'EB Garamond', serif; font-weight: 600; font-size: 17px; }
+  .word i { font-style: italic; color: var(--leaf); }
+  .tab-no { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: .08em; color: var(--ink-2); }
+
+  .entry-date { margin-top: 14px; }
+  .entry-date h2 { font-family: 'EB Garamond', serif; font-weight: 500; font-size: 28px; line-height: 1.05; }
+  .entry-date .lat { font-family: 'EB Garamond', serif; font-style: italic; font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+
+  /* lodyha týdne */
+  .stem-week { margin-top: 16px; padding: 14px 12px 10px; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-2); }
+  .stem-week .lbl { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .stem-week svg { width: 100%; margin-top: 6px; display: block; }
+
+  /* záznamy vzorků */
+  .specimens { margin-top: 18px; display: flex; flex-direction: column; }
+  .specimen { display: flex; gap: 13px; align-items: center; padding: 14px 2px; border-bottom: 1px solid var(--rule); position: relative; }
+  .specimen:first-child { border-top: 1.5px solid var(--ink); }
+  .spec-fig { width: 40px; height: 46px; flex: none; color: var(--leaf); }
+  .spec-fig svg { width: 100%; height: 100%; }
+  .specimen .body { flex: 1; min-width: 0; }
+  .specimen .name { font-family: 'EB Garamond', serif; font-weight: 600; font-size: 17px; }
+  .specimen .lat { font-family: 'EB Garamond', serif; font-style: italic; font-size: 11.5px; color: var(--ink-3); }
+  .specimen .plan { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+
+  .marks { display: flex; gap: 7px; }
+  .mk { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); display: grid; place-items: center; color: var(--ink-3); background: transparent; }
+  .mk svg { width: 16px; height: 16px; }
+  .mk.on-leaf { border-color: var(--leaf); background: var(--leaf); color: var(--paper); }
+  .mk.on-bud { border-color: var(--bud); background: var(--bud-soft); color: var(--bud); }
+  .mk.on-dry { border-color: var(--dry); background: var(--dry-soft); color: var(--dry); }
+
+  .det-stamp { position: absolute; right: 0; top: 4px; font-family: 'Courier Prime', monospace; font-size: 9.5px; color: var(--leaf); border: 1px solid var(--leaf); padding: 1px 7px; border-radius: 2px; transform: rotate(-1deg); opacity: .85; }
+  .det-stamp.bud { color: var(--bud); border-color: var(--bud); }
+
+  .reward-spec { display: flex; align-items: center; gap: 13px; padding: 12px 2px; font-size: 12.5px; color: var(--ink-2); border-bottom: 1px solid var(--rule); }
+  .reward-spec .fig { width: 26px; color: var(--ink-3); }
+  .reward-spec i { font-family: 'EB Garamond', serif; }
+
+  .diary { margin-top: 16px; }
+  .diary label { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .diary .line { margin-top: 7px; border-bottom: 1px solid var(--ink-3); padding-bottom: 5px; font-family: 'EB Garamond', serif; font-style: italic; font-size: 16px; color: var(--ink-2); }
+
+  .growth { margin-top: 18px; display: flex; }
+  .g { flex: 1; border-left: 1px solid var(--rule); padding-left: 14px; }
+  .g:first-child { border-left: 0; padding-left: 2px; }
+  .g b { font-family: 'EB Garamond', serif; font-weight: 600; font-size: 19px; display: block; }
+  .g span { font-size: 10.5px; color: var(--ink-2); }
+  .g.warn b { color: var(--dry); }
+
+  .nav { position: absolute; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--ink); padding: 11px 10px calc(13px + env(safe-area-inset-bottom, 8px)); }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--ink-3); font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+  .nav a svg { width: 20px; height: 20px; display: block; margin: 0 auto 4px; }
+  .nav a.active { color: var(--ink); }
+
+  /* HISTORIE — herbářová deska */
+  .h-head h2 { font-family: 'EB Garamond', serif; font-weight: 500; font-size: 26px; margin-top: 14px; }
+  .h-head p { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .seg { display: flex; margin-top: 14px; border-bottom: 1px solid var(--rule); }
+  .seg span { padding: 7px 13px 8px; font-size: 12px; font-weight: 700; color: var(--ink-3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .seg span.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .sheet { margin-top: 16px; position: relative; border: 1px solid var(--rule); background: var(--paper-2); border-radius: 2px; padding: 10px; }
+  .sheet svg { width: 100%; display: block; }
+  .sheet .label-card {
+    position: absolute; right: 16px; bottom: 14px; width: 150px;
+    background: var(--paper); border: 1px solid var(--ink-3); padding: 7px 9px;
+    font-family: 'Courier Prime', monospace; font-size: 8.5px; line-height: 1.5; color: var(--ink-2);
+    transform: rotate(.6deg); box-shadow: 1px 2px 4px rgba(51,48,31,.12);
+  }
+  .sheet .label-card b { color: var(--ink); font-size: 9px; letter-spacing: .05em; }
+  .sheet .tape { position: absolute; width: 44px; height: 14px; background: rgba(217,210,184,.7); border: 1px solid rgba(51,48,31,.12); transform: rotate(-35deg); }
+
+  .tags { margin-top: 18px; }
+  .tags h3 { font-family: 'Courier Prime', monospace; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+  .tag-row { display: flex; gap: 9px; margin-top: 10px; }
+  .btag { flex: 1; border: 1px solid var(--ink-3); background: var(--paper); padding: 9px 4px 7px; text-align: center; position: relative; border-radius: 2px; }
+  .btag:before { content: ''; position: absolute; top: 4px; left: 50%; width: 5px; height: 5px; border: 1px solid var(--ink-3); border-radius: 50%; transform: translateX(-50%); }
+  .btag svg { width: 22px; height: 22px; color: var(--ink); margin-top: 5px; }
+  .btag small { display: block; font-size: 8px; color: var(--ink-2); line-height: 1.2; margin-top: 3px; }
+  .btag.locked { opacity: .35; }
+
+  .h-stats { margin-top: 18px; border-top: 1.5px solid var(--ink); }
+  .h-stat { display: flex; align-items: baseline; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--rule); }
+  .h-stat .nm { flex: 1; font-family: 'EB Garamond', serif; font-weight: 600; font-size: 15px; }
+  .h-stat .val { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-2); }
+  .h-stat .val b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 13 · kolo 5</div>
+  <h1>Herbář</h1>
+  <p>Návyk se pěstuje — neroste na povel, roste každodenní péčí. Vědecká botanická ilustrace
+  19. století: rytina, krémový papír, latinské štítky psacím strojem, číslované desky
+  (Tab. XXVIII = týden 28). Týden je lodyha: plný lístek = zapsaný den, poupě = klid
+  (rostlina odpočívá, neusychá), prázdná uzlina = vynechání. Historie je herbářová deska
+  s lisovanou rostlinou, odznaky jsou určovací štítky. Kew Gardens, ne FarmVille.</p>
+  <div class="meta">
+    <div><b>Typografie</b>EB Garamond · Mulish · Courier Prime</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#f6f2e4"></i><i style="background:#33301f"></i><i style="background:#4a6741"></i><i style="background:#b98a34"></i><i style="background:#a34d2f"></i></span></div>
+    <div><b>Podpis</b>lodyha týdne · herbářová deska · určovací štítky</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — Tab. XXVIII</div>
+  <div class="phone"><div class="screen"><div class="plate-frame">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="tab-no">TAB. XXVIII · FOL. 192</span>
+    </div>
+
+    <div class="entry-date">
+      <h2>Sobota 11. července</h2>
+      <div class="lat">Cultura diurna — tres species, ~40 min.</div>
+    </div>
+
+    <div class="stem-week">
+      <div class="lbl"><span>Lodyha týdne 28</span><span>po — ne</span></div>
+      <svg viewBox="0 0 330 56">
+        <line x1="12" y1="34" x2="318" y2="34" stroke="#8a8465" stroke-width="2"/>
+        <!-- po: list -->
+        <path d="M36 34 q-4 -16 8 -22 q4 12 -8 22z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <!-- út: list dolů -->
+        <path d="M82 34 q4 16 -8 22 q-4 -12 8 -22z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <!-- st: poupě -->
+        <ellipse cx="128" cy="24" rx="5" ry="8" fill="#b98a34" stroke="#33301f" stroke-width="1"/>
+        <line x1="128" y1="34" x2="128" y2="30" stroke="#33301f" stroke-width="1"/>
+        <!-- čt: list -->
+        <path d="M174 34 q-4 -16 8 -22 q4 12 -8 22z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <!-- pá: list dolů -->
+        <path d="M220 34 q4 16 -8 22 q-4 -12 8 -22z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <!-- so: dnešní uzlina -->
+        <circle cx="266" cy="34" r="5" fill="none" stroke="#33301f" stroke-width="1.4" stroke-dasharray="2.5 2.5"/>
+        <!-- ne: budoucí -->
+        <circle cx="306" cy="34" r="3" fill="none" stroke="#a29b7f" stroke-width="1.2"/>
+        <g font-family="'Courier Prime', monospace" font-size="8" fill="#a29b7f" text-anchor="middle">
+          <text x="36" y="50">po</text><text x="82" y="50">út</text><text x="128" y="50">st</text>
+          <text x="174" y="50">čt</text><text x="220" y="50">pá</text><text x="266" y="50">so</text><text x="306" y="50">ne</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="specimens">
+
+      <div class="specimen">
+        <span class="spec-fig">
+          <svg viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="20" y1="44" x2="20" y2="10"/>
+            <path d="M20 32 q-10 -2 -12 -12 q10 2 12 12z M20 24 q10 -2 12 -12 q-10 2 -12 12z" fill="#e2e8d6"/>
+            <circle cx="20" cy="8" r="4" fill="#e2e8d6"/>
+          </svg>
+        </span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="lat">Exercitium corporis · 10 min</div>
+          <div class="plan">Trénink B — kruhy, lehce</div>
+        </div>
+        <span class="det-stamp">zapsáno 9.41</span>
+        <div class="marks">
+          <span class="mk on-leaf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="10" rx="4.5" ry="6.5"/><line x1="12" y1="16.5" x2="12" y2="20"/></svg></span>
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="specimen">
+        <span class="spec-fig">
+          <svg viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="20" y1="44" x2="20" y2="12"/>
+            <path d="M20 36 q-9 -1 -11 -10 q9 1 11 10z M20 28 q9 -1 11 -10 q-9 1 -11 10z M20 20 q-8 -1 -10 -9 q8 1 10 9z" fill="#e2e8d6"/>
+          </svg>
+        </span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="lat">Lectio vespertina · 15 min</div>
+          <div class="plan">Zaklínač, kapitola dál</div>
+        </div>
+        <div class="marks">
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="10" rx="4.5" ry="6.5"/><line x1="12" y1="16.5" x2="12" y2="20"/></svg></span>
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="specimen">
+        <span class="spec-fig">
+          <svg viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="20" y1="44" x2="20" y2="14"/>
+            <path d="M20 34 q-10 -2 -12 -11 q10 2 12 11z" fill="#e2e8d6"/>
+            <g stroke-width="1.2"><line x1="20" y1="14" x2="14" y2="7"/><line x1="20" y1="14" x2="26" y2="7"/><line x1="20" y1="14" x2="20" y2="5"/></g>
+            <circle cx="14" cy="6" r="2" fill="#f0e6c8"/><circle cx="26" cy="6" r="2" fill="#f0e6c8"/><circle cx="20" cy="4" r="2" fill="#f0e6c8"/>
+          </svg>
+        </span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="lat">Studium artis · 15 min + TIL</div>
+          <div class="plan">Playwright den 6 + zápis</div>
+        </div>
+        <span class="det-stamp bud">poupě — klid</span>
+        <div class="marks">
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="mk on-bud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="10" rx="4.5" ry="6.5"/><line x1="12" y1="16.5" x2="12" y2="20"/></svg></span>
+          <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward-spec">
+        <span class="fig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><i>Šachy</i> — planý květ, kvete jen pro radost. Do kultury se nepočítá.</span>
+      </div>
+
+    </div>
+
+    <div class="diary">
+      <label>Poznámka sběratele · věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="growth">
+      <div class="g"><b>6. den</b><span>růstu v řadě</span></div>
+      <div class="g"><b>86 %</b><span>vitalita týdne</span></div>
+      <div class="g warn"><b>čtení 2×</b><span>vadne — zalít méně?</span></div>
+    </div>
+
+  </div>
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="6"/><path d="M12 14q-6 -1 -7 -7 6 1 7 7z M12 10q6 -1 7 -7 -6 1 -7 7z"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><line x1="12" y1="19" x2="12" y2="9" /><path d="M12 15q-4 -1 -5 -5 4 1 5 5z" /></svg>Herbář</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Vzorky</a>
+    </nav>
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — herbářová deska</div>
+  <div class="phone"><div class="screen"><div class="plate-frame">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="tab-no">HERBARIUM · 192 FOL.</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Herbářová deska</h2>
+      <p>lisovaný záznam posledních týdnů · list = zapsaný den</p>
+    </div>
+
+    <div class="seg"><span class="on">Deska</span><span>Kalendář</span><span>Poznámky</span></div>
+
+    <div class="sheet">
+      <span class="tape" style="top:-4px;left:24px"></span>
+      <span class="tape" style="top:-4px;right:30px;transform:rotate(32deg)"></span>
+      <svg viewBox="0 0 330 240">
+        <!-- hlavní stonek -->
+        <path d="M165 232 C160 190 172 160 162 120 C156 90 168 60 164 28" fill="none" stroke="#4a6741" stroke-width="2.6"/>
+        <!-- větve s listy: každý týden jedna přeslen -->
+        <!-- týden dole (starší) -->
+        <path d="M163 210 q-26 -4 -34 -26 q24 4 34 26z" fill="#5d7a52" stroke="#33301f" stroke-width="1"/>
+        <path d="M163 200 q26 -6 32 -28 q-24 6 -32 28z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <path d="M164 184 q-24 -4 -30 -24 q22 4 30 24z" fill="#5d7a52" stroke="#33301f" stroke-width="1"/>
+        <!-- suchý list (vynechání) -->
+        <path d="M165 170 q22 -2 28 -18 q-20 2 -28 18z" fill="#c9a173" stroke="#8a5a36" stroke-width="1"/>
+        <path d="M163 152 q-24 -6 -29 -25 q22 6 29 25z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <path d="M162 136 q24 -4 30 -22 q-22 4 -30 22z" fill="#5d7a52" stroke="#33301f" stroke-width="1"/>
+        <!-- poupě (klid) -->
+        <ellipse cx="146" cy="112" rx="6" ry="10" transform="rotate(-24 146 112)" fill="#b98a34" stroke="#33301f" stroke-width="1"/>
+        <path d="M161 118 l-12 -4" stroke="#4a6741" stroke-width="1.6" fill="none"/>
+        <path d="M164 104 q22 -4 28 -20 q-20 4 -28 20z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <path d="M163 88 q-22 -4 -28 -20 q20 4 28 20z" fill="#5d7a52" stroke="#33301f" stroke-width="1"/>
+        <path d="M164 70 q20 -4 26 -18 q-18 4 -26 18z" fill="#4a6741" stroke="#33301f" stroke-width="1"/>
+        <!-- vrchol: mladé lístky (tento týden) -->
+        <path d="M164 46 q-14 -4 -18 -16 q14 4 18 16z" fill="#7a9468" stroke="#33301f" stroke-width="1"/>
+        <path d="M164 38 q14 -4 17 -15 q-13 4 -17 15z" fill="#7a9468" stroke="#33301f" stroke-width="1"/>
+        <circle cx="164" cy="26" r="4.5" fill="none" stroke="#33301f" stroke-width="1.2" stroke-dasharray="2.5 2.5"/>
+        <!-- kořínky -->
+        <path d="M165 232 q-10 4 -16 3 M165 232 q8 5 15 4 M165 232 q-2 6 -1 7" fill="none" stroke="#8a8465" stroke-width="1.4"/>
+      </svg>
+      <div class="label-card">
+        <b>HABITNAUT VULGARIS</b><br>
+        leg. M. Švondr · det. kouč<br>
+        192 dní kultivace<br>
+        vitalita 86 % · sucho 2×
+      </div>
+    </div>
+
+    <div class="tags">
+      <h3>Určovací štítky</h3>
+      <div class="tag-row">
+        <div class="btag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 20V8M12 14q-5-1-6-6 5 1 6 6z"/></svg><small>Vzklíčeno<br>7 dní</small></div>
+        <div class="btag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="9" rx="4" ry="6"/><line x1="12" y1="15" x2="12" y2="20"/></svg><small>Zakořeněno<br>28 dní</small></div>
+        <div class="btag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 18q6-2 6-8 0 6 6 8M12 10V4"/></svg><small>Obrazilo<br>po suchu</small></div>
+        <div class="btag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><line x1="12" y1="12" x2="12" y2="20"/></svg><small>Vykvetlo<br>30 dní</small></div>
+        <div class="btag locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 20v-6M8 20v-4M16 20v-4M12 10a4 4 0 100-8 4 4 0 000 8z"/></svg><small>Semenice<br>100 dní</small></div>
+      </div>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · řada 9</span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · řada 5</span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · řada 7</span></div>
+    </div>
+
+  </div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="6"/><path d="M12 14q-6 -1 -7 -7 6 1 7 7z M12 10q6 -1 7 -7 -6 1 -7 7z"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><line x1="12" y1="19" x2="12" y2="9"/><path d="M12 15q-4 -1 -5 -5 4 1 5 5z"/></svg>Herbář</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Vzorky</a>
+    </nav>
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

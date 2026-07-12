@@ -212,3 +212,25 @@ tenké linky chtějí disciplínu při implementaci; méně hravé mikrointerakc
 
 Volba se tedy rozšiřuje: (a) Stezka · (b) Výprava (cartoon) · (c) hybrid
 Stezka+Šlápota · **(d) Poutník (dospělý)** · (e) hybrid Stezka+Poutník.
+
+## 7. Kolo 5 — tři směry mimo cestu (2026-07-12)
+
+Mockupy: `smer-13.html` · `smer-14.html` · `smer-15.html`. Zadání: „ještě 3 verze,
+ať nejsou zaměřeny na poutníka/cestu." Dospělé, odvaha směru 3, každý z jiného
+světa — ale všechny nesou pravidla kouče (skip ≠ selhání, jednodenní výpadek
+nerozbíjí celek) přímo v mechanice metafory:
+
+| | **Směr 13 — Herbář** | **Směr 14 — Temná komora** | **Směr 15 — Modrotisk** |
+|---|---|---|---|
+| Mechanismus návyku | návyk se pěstuje — roste každodenní péčí, ne na povel | den se exponuje — film se nestříhá kvůli prázdnému políčku | návyky se stavějí — po vrstvách; dům stojí, i když den nezdíš |
+| Vizuální svět | botanická ilustrace 19. stol.: rytina, latinské štítky psacím strojem, číslované desky | analog fotografie: kinofilm s perforací, kontaktní arch, temná komora (nativně dark!) | kyanotypový stavební výkres: pruská modř, kóty, title block, jeřáb |
+| Skip = | poupě (rostlina odpočívá, neusychá) | krytka na objektivu (rozhodl ses nefotit) | **technologická přestávka** (beton zraje — pauza je předepsaná) |
+| Historie = | herbářová deska s lisovanou rostlinou | kontaktní arch s voskovkovými kroužky | řez stavbou rostoucí zdola (podlaží=týdny, okna=dny) |
+| Odznaky = | určovací štítky | zvětšeniny na šňůře s kolíčky | kolaudační razítka |
+| Typografie | EB Garamond · Mulish · Courier Prime | Unica One · IBM Plex Sans/Mono | Big Shoulders · Public Sans · Fira Mono |
+| Pro | nejorganičtější k „růstu"; krásný, tichý, nadčasový | jediný nativně tmavý = přesně večerní 2min check-in na OLED; nejatmosféričtější | nejlepší metafora pro skip vůbec (tech. přestávka); QA/inženýrské duši blízké bez QA odkazů; „stavím si dům" je silný pocit pokroku |
+| Proti | riziko „kytičkové" jemnosti; růst rostliny je pomalý feedback | přes den venku hůř čitelná; tmavá jako jediný režim | modrá monochromatičnost může omrzet; nejtechničtější (nejméně „lidský") |
+
+Stav velkého výběru (kola 1–5, 15 směrů): nasazená je Stezka (W3.5 d.1–3);
+kandidáti na pivot/hybrid: Výprava (11), Poutník (12), Herbář (13),
+Temná komora (14), Modrotisk (15). Rozhoduje Michal.

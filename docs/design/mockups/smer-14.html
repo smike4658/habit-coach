@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 14: Temná komora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unica+One&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 14 — „TEMNÁ KOMORA" (analogová fotografie · kontaktní arch)
+  Metafora-základ: den se exponuje. Každý návyk je jedno okénko
+  filmu — buď ho exponuješ (✓), nebo necháš krytku na objektivu
+  (vědomý klid — políčko není zkažené, prostě ses rozhodl nefotit),
+  nebo zůstane neexponované. Film se nestříhá kvůli jednomu
+  prázdnému políčku — přesně naše nerozbitelnost streaku.
+
+  Večerní check-in = práce v temné komoře pod červeným světlem.
+  Nativně tmavé (jediný tmavý směr od kola 2), ideální pro hlavní
+  use case: večer, 2 minuty, OLED.
+
+  Vizuální jazyk: kinofilm (perforace, okrajové kódy KODAK-style),
+  kontaktní arch s voskovkou (červené kroužky = vybrané snímky =
+  milníky), zvětšeniny na šňůře s kolíčky, časovač zvětšováku.
+
+  TYPOGRAFIE: Unica One (display — kondenzovaný titulek jako na
+  krabičce filmu) · IBM Plex Sans (tělo) · IBM Plex Mono (okrajové
+  kódy, časy, citlivosti).
+
+  MOTION PRINCIPY:
+  - check-in: okénko se „vyvolá" — z černé se vynoří obraz
+    (opacity + blur 4→0, 450 ms) pod červeným nádechem
+  - krytka (klid): objektiv mrkne — kruhová clona se zavře (240 ms)
+  - kontaktní arch: voskovkový kroužek se nakreslí (dashoffset 300 ms)
+  - safelight: velmi jemné dýchání červené (8 s, ±4 % jasu)
+  - časovač: odpočet segmentů při ukládání
+  - prefers-reduced-motion: okamžité stavy, žádné dýchání
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --dark: #16130f;
+    --panel: #201c16;
+    --edge: #2e281f;
+    --text: #ede5d4;
+    --dim: #a89a80;
+    --safelight: #d0442c;
+    --amber: #dfa03f;
+    --develop: #7da06a;
+    --film: #0c0a08;
+    --faint: #6b6050;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--dark); color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--safelight); }
+  .intro h1 { font-family: 'Unica One', sans-serif; font-weight: 400; font-size: 46px; letter-spacing: .04em; text-transform: uppercase; margin-top: 6px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--dim); font-size: 14.5px; line-height: 1.6; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--dim); }
+  .meta b { display: block; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(237,229,212,.2); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--dark); border-radius: 28px;
+    box-shadow: inset 0 0 0 1px rgba(237,229,212,.12), 0 30px 80px -30px rgba(0,0,0,.9);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 22px 18px 100px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: center; }
+  .word { font-family: 'Unica One', sans-serif; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; }
+  .word i { font-style: normal; color: var(--safelight); }
+  .iso { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .1em; color: var(--dim); }
+
+  .roll-head { margin-top: 18px; display: flex; align-items: baseline; justify-content: space-between; }
+  .roll-head h2 { font-family: 'Unica One', sans-serif; font-size: 27px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
+  .roll-head .fr { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--faint); text-align: right; line-height: 1.5; }
+
+  /* filmový pás týdne */
+  .strip { margin-top: 14px; background: var(--film); border-radius: 6px; padding: 5px 8px; position: relative; }
+  .strip .holes { display: flex; justify-content: space-between; padding: 3px 2px; }
+  .strip .holes i { width: 10px; height: 7px; background: var(--dark); border-radius: 2px; }
+  .strip .cells { display: flex; gap: 5px; padding: 2px 1px; }
+  .cell { flex: 1; aspect-ratio: 4/3.4; border-radius: 2px; position: relative; background: #060504; overflow: hidden; }
+  .cell.exp { background: linear-gradient(160deg, #4d4232 0%, #2c261c 60%, #1a1611 100%); box-shadow: inset 0 0 0 1px rgba(223,160,63,.35); }
+  .cell.cap { background: #100e0b; }
+  .cell.cap:after { content: ''; position: absolute; inset: 22%; border: 1.5px solid var(--amber); border-radius: 50%; opacity: .8; }
+  .cell.now { box-shadow: inset 0 0 0 1.5px var(--safelight); }
+  .cell small { position: absolute; bottom: 1px; right: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 6.5px; color: var(--faint); }
+  .strip .code { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; letter-spacing: .12em; color: var(--amber); padding: 3px 2px 1px; opacity: .85; }
+
+  /* záběry dne */
+  .shots { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .shot { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 13px 13px; display: flex; align-items: center; gap: 13px; position: relative; }
+  .shot .no { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--faint); writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: .1em; }
+  .shot .body { flex: 1; min-width: 0; }
+  .shot .name { font-weight: 600; font-size: 15.5px; letter-spacing: .01em; }
+  .shot .plan { font-size: 12.5px; color: var(--dim); margin-top: 2px; }
+  .shot .exif { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--faint); margin-top: 4px; letter-spacing: .06em; }
+
+  .acts { display: flex; gap: 7px; }
+  .act { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--edge); background: transparent; display: grid; place-items: center; color: var(--faint); }
+  .act svg { width: 16px; height: 16px; }
+  .act.on-exp { border-color: var(--develop); background: rgba(125,160,106,.15); color: var(--develop); }
+  .act.on-cap { border-color: var(--amber); background: rgba(223,160,63,.12); color: var(--amber); }
+  .act.on-void { border-color: var(--safelight); background: rgba(208,68,44,.12); color: var(--safelight); }
+
+  .devtag { position: absolute; top: -9px; right: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .1em; padding: 2px 8px; border-radius: 3px; }
+  .devtag.ok { background: var(--develop); color: var(--dark); }
+  .devtag.cap { background: var(--amber); color: var(--dark); }
+
+  .reward-shot { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border: 1.5px dashed var(--edge); border-radius: 10px; color: var(--dim); font-size: 12.5px; }
+  .reward-shot .glyph { color: var(--faint); width: 18px; }
+  .reward-shot b { color: var(--text); font-weight: 600; }
+
+  /* věta dne — rub fotografie */
+  .caption { margin-top: 16px; background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 11px 14px; }
+  .caption label { font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .caption .line { margin-top: 5px; font-style: italic; font-size: 14.5px; color: var(--dim); }
+
+  .counter { margin-top: 16px; display: flex; }
+  .cnt { flex: 1; border-left: 1px solid var(--edge); padding-left: 14px; }
+  .cnt:first-child { border-left: 0; padding-left: 2px; }
+  .cnt b { font-family: 'Unica One', sans-serif; font-size: 21px; letter-spacing: .04em; display: block; }
+  .cnt span { font-size: 10.5px; color: var(--dim); }
+  .cnt.warn b { color: var(--safelight); }
+
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--film); border-top: 1px solid var(--edge);
+    padding: 11px 10px calc(13px + env(safe-area-inset-bottom, 8px));
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--faint); font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; }
+  .nav a svg { width: 20px; height: 20px; display: block; margin: 0 auto 4px; }
+  .nav a.active { color: var(--text); }
+  .nav a.active svg { color: var(--safelight); }
+
+  /* HISTORIE — kontaktní arch */
+  .h-head { margin-top: 18px; }
+  .h-head h2 { font-family: 'Unica One', sans-serif; font-size: 26px; letter-spacing: .04em; text-transform: uppercase; }
+  .h-head p { font-size: 12px; color: var(--dim); margin-top: 3px; }
+  .seg { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; padding: 4px; margin-top: 14px; }
+  .seg span { flex: 1; text-align: center; font-size: 11.5px; font-weight: 600; padding: 6px 0; border-radius: 5px; color: var(--faint); }
+  .seg span.on { background: var(--text); color: var(--dark); }
+
+  .contact { margin-top: 14px; background: var(--film); border-radius: 8px; padding: 12px 10px; }
+  .contact .sheet-label { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: .14em; color: var(--amber); text-transform: uppercase; padding: 0 2px 8px; opacity: .9; }
+  .contact .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .contact .fr { aspect-ratio: 1; border-radius: 2px; background: #060504; position: relative; }
+  .contact .fr.e1 { background: #241f17; }
+  .contact .fr.e2 { background: #3a3122; }
+  .contact .fr.e3 { background: #55462c; }
+  .contact .fr.e4 { background: #6f5a34; }
+  .contact .fr.circled:after { content: ''; position: absolute; inset: -2px; border: 1.8px solid var(--safelight); border-radius: 50%; transform: rotate(-4deg); }
+  .contact .fr.now { box-shadow: inset 0 0 0 1.5px var(--safelight); }
+  .contact .legend { display: flex; justify-content: flex-end; gap: 6px; align-items: center; margin-top: 9px; font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--faint); }
+  .contact .legend i { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* zvětšeniny na šňůře */
+  .line-prints { margin-top: 20px; position: relative; padding-top: 12px; }
+  .line-prints:before { content: ''; position: absolute; top: 6px; left: -4px; right: -4px; height: 2px; background: var(--edge); border-radius: 2px; }
+  .line-prints h3 { position: absolute; top: -8px; left: 2px; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); background: var(--dark); padding-right: 8px; }
+  .prints { display: flex; gap: 9px; margin-top: 8px; }
+  .print { flex: 1; background: var(--text); border-radius: 2px; padding: 4px 4px 12px; position: relative; transform: rotate(-1deg); }
+  .print:nth-child(2n) { transform: rotate(1.2deg); }
+  .print:before { content: ''; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); width: 7px; height: 10px; background: var(--amber); border-radius: 1.5px; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+  .print .img { aspect-ratio: 1; background: linear-gradient(150deg, #3f3627 0%, #211c14 100%); border-radius: 1px; display: grid; place-items: center; color: var(--amber); }
+  .print .img svg { width: 20px; height: 20px; }
+  .print small { position: absolute; bottom: 2px; left: 4px; right: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 6.5px; color: #55462c; text-align: center; letter-spacing: .04em; }
+  .print.blank .img { background: #dcd3c0; color: #a89a80; }
+  .print.blank { opacity: .5; }
+
+  .h-stats { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .h-stat { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; padding: 9px 13px; }
+  .h-stat .nm { flex: 1; font-weight: 600; font-size: 13.5px; }
+  .h-stat .val { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--dim); }
+  .h-stat .val b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 14 · kolo 5</div>
+  <h1>Temná komora</h1>
+  <p>Den se exponuje. Každý návyk je okénko filmu — exponuješ ho, nebo necháš krytku na
+  objektivu (vědomý klid: políčko není zkažené, rozhodl ses nefotit). Film se nestříhá kvůli
+  jednomu prázdnému políčku. Večerní check-in = práce pod červeným světlem temné komory —
+  jediný nativně tmavý směr, přesně pro hlavní use case (večer, 2 minuty, OLED). Historie je
+  kontaktní arch s voskovkou, odznaky visí jako zvětšeniny na šňůře.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Unica One · IBM Plex Sans · IBM Plex Mono</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#16130f"></i><i style="background:#ede5d4"></i><i style="background:#d0442c"></i><i style="background:#dfa03f"></i><i style="background:#7da06a"></i></span></div>
+    <div><b>Podpis</b>filmový pás s perforací · kontaktní arch · zvětšeniny na šňůře</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — role 28, snímek 6</div>
+  <div class="phone"><div class="screen">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="iso">ROLE 28 · ISO 400</span>
+    </div>
+
+    <div class="roll-head">
+      <h2>Sobota 11. 7.</h2>
+      <div class="fr">SNÍMEK 6/7<br>3 ZÁBĚRY · ~40 MIN</div>
+    </div>
+
+    <div class="strip">
+      <div class="holes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="cells">
+        <div class="cell exp"><small>01</small></div>
+        <div class="cell exp"><small>02</small></div>
+        <div class="cell cap"><small>03</small></div>
+        <div class="cell exp"><small>04</small></div>
+        <div class="cell exp"><small>05</small></div>
+        <div class="cell now"><small>06</small></div>
+        <div class="cell"><small>07</small></div>
+      </div>
+      <div class="holes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="code"><span>HABITNAUT PAN 400</span><span>▸ 28A</span></div>
+    </div>
+
+    <div class="shots">
+
+      <div class="shot">
+        <span class="devtag ok">VYVOLÁNO 9:41</span>
+        <span class="no">ZÁBĚR 1</span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="plan">Trénink B — kruhy, lehce</div>
+          <div class="exif">10 MIN · f/2 · RÁNO</div>
+        </div>
+        <div class="acts">
+          <span class="act on-exp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="shot">
+        <span class="no">ZÁBĚR 2</span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="plan">Zaklínač, kapitola dál</div>
+          <div class="exif">15 MIN · VEČER · DLOUHÁ EXPOZICE</div>
+        </div>
+        <div class="acts">
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="shot">
+        <span class="devtag cap">KRYTKA — KLID</span>
+        <span class="no">ZÁBĚR 3</span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="plan">Playwright den 6 + zápis</div>
+          <div class="exif">15 MIN + TIL</div>
+        </div>
+        <div class="acts">
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="act on-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward-shot">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><b>Šachy</b> — momentka mimo roli. Fotí se jen pro radost, film nešetři.</span>
+      </div>
+
+    </div>
+
+    <div class="caption">
+      <label>Popisek na rub · věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="counter">
+      <div class="cnt"><b>6</b><span>snímků v řadě</span></div>
+      <div class="cnt"><b>86 %</b><span>role exponováno</span></div>
+      <div class="cnt warn"><b>ČTENÍ 2×</b><span>podexponováno</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13" r="4"/><path d="M4 8h3l2-3h6l2 3h3v11H4z" stroke-linejoin="round"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4" opacity=".6"/></svg>Arch</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Záběry</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — kontaktní arch</div>
+  <div class="phone"><div class="screen">
+
+    <div class="masthead">
+      <span class="word">habit<i>naut</i></span>
+      <span class="iso">ARCHIV · 192 SNÍMKŮ</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Kontaktní arch</h2>
+      <p>posledních 8 týdnů · jas = kolik záběrů den unesl · ⭕ voskovka = milník</p>
+    </div>
+
+    <div class="seg"><span class="on">Arch</span><span>Kalendář</span><span>Popisky</span></div>
+
+    <div class="contact">
+      <div class="sheet-label"><span>HABITNAUT PAN 400</span><span>ARCH 24—28</span></div>
+      <div class="grid">
+        <div class="fr e1"></div><div class="fr e2"></div><div class="fr"></div><div class="fr e2"></div><div class="fr e1"></div><div class="fr e3"></div><div class="fr e2"></div>
+        <div class="fr e2"></div><div class="fr e3"></div><div class="fr e2"></div><div class="fr e1"></div><div class="fr e3"></div><div class="fr e3"></div><div class="fr e2"></div>
+        <div class="fr e3"></div><div class="fr e2"></div><div class="fr circled e4"></div><div class="fr e3"></div><div class="fr e4"></div><div class="fr e2"></div><div class="fr e3"></div>
+        <div class="fr e1"></div><div class="fr"></div><div class="fr e2"></div><div class="fr e3"></div><div class="fr e3"></div><div class="fr e4"></div><div class="fr e3"></div>
+        <div class="fr e4"></div><div class="fr e3"></div><div class="fr e4"></div><div class="fr e2"></div><div class="fr e4"></div><div class="fr e4"></div><div class="fr now e3"></div>
+      </div>
+      <div class="legend">tma <i style="background:#060504"></i><i style="background:#241f17"></i><i style="background:#3a3122"></i><i style="background:#55462c"></i><i style="background:#6f5a34"></i> plná expozice</div>
+    </div>
+
+    <div class="line-prints">
+      <h3>Zvětšeniny</h3>
+      <div class="prints">
+        <div class="print">
+          <div class="img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2" stroke-linecap="round"/></svg></div>
+          <small>7 DNÍ V ŘADĚ</small>
+        </div>
+        <div class="print">
+          <div class="img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 13l2 2 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <small>28 BEZ 2×</small>
+        </div>
+        <div class="print">
+          <div class="img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 17l4-9 3 5 3-3"/></svg></div>
+          <small>NÁVRAT</small>
+        </div>
+        <div class="print blank">
+          <div class="img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/></svg></div>
+          <small>30 DNÍ</small>
+        </div>
+        <div class="print blank">
+          <div class="img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/></svg></div>
+          <small>100 DNÍ</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · řada 9</span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · řada 5</span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · řada 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13" r="4"/><path d="M4 8h3l2-3h6l2 3h3v11H4z" stroke-linejoin="round"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4" opacity=".6"/></svg>Arch</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Záběry</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

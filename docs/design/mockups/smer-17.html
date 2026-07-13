@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 17: Puls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 17 — „PULS" (moderní produkt 2026 · živá koule dne)
+  Zadání-fit: „směr 4 vypadá moderně, ale potřeboval by opravit."
+  Tohle je ta oprava: modernost špičkových consumer app 2026
+  (Amie, Family, Arc) — ale s VLASTNÍ identitou místo iOS klonu.
+  Žádné sklo a blur; teplý krém, měkká hloubka, velká přátelská
+  typografie a jeden nezaměnitelný podpis:
+
+  ŽIVÁ KOULE DNE — gradientová koule (korál→fialová) je tvář
+  appky. Ráno je bledá a klidná; každým check-inem získá sytost
+  a energii; po posledním se rozzáří. Klidový den = koule tiše
+  dýchá v jantaru (klid je stav, ne prázdno). Historie = mřížka
+  malých koulí — měsíc energie na jeden pohled.
+
+  Metafora: puls/energie — návyky nejsou úkoly, jsou to tepy dne.
+  Bez dětskosti (žádný maskot), bez stařeckosti (žádný serif/rytina):
+  současný, teplý, rychlý produkt.
+
+  TYPOGRAFIE: Gabarito (display — kulatý geometrický, přátelský
+  ale dospělý) · Manrope (tělo/UI). Čísla: Gabarito 800.
+
+  MOTION PRINCIPY:
+  - koule: pomalé dýchání (scale ±1.5 %, 6 s); po check-inu hue-shift
+    a nárůst sytosti (600 ms); po posledním krátká „vlna" ven
+  - karty: spring press (scale .97, stiffness vysoká, rychlé)
+  - pilulky stavů: vybraná se roztáhne (width spring), ostatní zeslábnou
+  - mřížka koulí v historii: stagger fade 20 ms po řádcích
+  - prefers-reduced-motion: bez dýchání, okamžité stavy
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --canvas: #faf6f0;
+    --card: #ffffff;
+    --ink: #211d18;
+    --sub: #7a7268;
+    --faint: #b3aa9d;
+    --line: #eee7dc;
+    --coral: #ff6d4d;
+    --violet: #8b5cf6;
+    --amber: #f0b243;
+    --amber-soft: #fdf3de;
+    --mist: #f3ede4;
+    --shadow: 0 10px 30px -12px rgba(33,29,24,.18);
+    --grad: linear-gradient(135deg, #ff8a5c 0%, #ff5d7e 45%, #8b5cf6 100%);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--canvas); color: var(--ink);
+    font-family: 'Manrope', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .intro h1 { font-family: 'Gabarito', sans-serif; font-weight: 900; font-size: 44px; letter-spacing: -.02em; margin-top: 4px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--sub); font-size: 14.5px; line-height: 1.6; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--sub); }
+  .meta b { display: block; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(33,29,24,.12); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--canvas); border-radius: 36px;
+    box-shadow: inset 0 0 0 1px rgba(33,29,24,.08), 0 30px 70px -30px rgba(33,29,24,.35);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 24px 18px 104px; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .word { font-family: 'Gabarito', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -.01em; }
+  .word i { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .week-pill { font-size: 11px; font-weight: 700; color: var(--sub); background: var(--card); border-radius: 999px; padding: 6px 13px; box-shadow: var(--shadow); }
+
+  /* ── živá koule dne ─────────────────────────────────────────── */
+  .orb-hero { margin-top: 18px; display: flex; align-items: center; gap: 18px; }
+  .orb {
+    width: 104px; height: 104px; border-radius: 50%; flex: none; position: relative; overflow: hidden;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.75) 0 14%, transparent 42%),
+      conic-gradient(from 220deg, #ff8a5c 0deg, #ff5d7e 120deg, #8b5cf6 240deg, #ffb46b 320deg, #ff8a5c 360deg);
+    filter: saturate(.72);
+    box-shadow: 0 16px 36px -14px rgba(255,93,126,.55), inset 0 -10px 24px rgba(139,92,246,.35);
+  }
+  .orb:after { /* zbývající část dne = mlha */
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from -90deg, transparent 0 240deg, rgba(250,246,240,.82) 240deg 360deg);
+    filter: blur(7px); transform: scale(1.12);
+  }
+  .orb-copy h2 { font-family: 'Gabarito', sans-serif; font-weight: 800; font-size: 26px; line-height: 1.05; letter-spacing: -.02em; }
+  .orb-copy p { font-size: 13px; color: var(--sub); margin-top: 5px; line-height: 1.45; }
+  .orb-copy p b { color: var(--ink); }
+
+  /* ── karty návyků ───────────────────────────────────────────── */
+  .habits { margin-top: 20px; display: flex; flex-direction: column; gap: 11px; }
+  .habit { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 15px 16px; position: relative; }
+  .habit .row1 { display: flex; align-items: center; gap: 12px; }
+  .hicon { width: 42px; height: 42px; border-radius: 14px; flex: none; display: grid; place-items: center; background: var(--mist); color: var(--ink); }
+  .hicon svg { width: 21px; height: 21px; }
+  .hicon.grad { background: var(--grad); color: #fff; }
+  .habit .body { flex: 1; min-width: 0; }
+  .habit .name { font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: 16.5px; letter-spacing: -.01em; }
+  .habit .plan { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
+  .habit .chip { font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
+  .chip.done { background: var(--grad); color: #fff; }
+  .chip.rest { background: var(--amber-soft); color: #a1712a; }
+
+  .pills { display: flex; gap: 6px; margin-top: 12px; }
+  .pill { flex: 1; text-align: center; font-size: 11.5px; font-weight: 800; padding: 8px 0; border-radius: 999px; background: var(--mist); color: var(--faint); }
+  .pill.p-done.on { background: var(--grad); color: #fff; box-shadow: 0 6px 16px -6px rgba(255,93,126,.6); }
+  .pill.p-rest.on { background: var(--amber); color: #fff; }
+  .pill.p-miss.on { background: #f6d9d2; color: #b04a33; }
+
+  .reward { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 22px; border: 1.5px dashed var(--line); color: var(--sub); font-size: 12.5px; background: rgba(255,255,255,.5); }
+  .reward .glyph { width: 18px; color: var(--faint); }
+  .reward b { color: var(--ink); font-weight: 800; }
+
+  /* věta dne */
+  .say { margin-top: 14px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 13px 16px; }
+  .say label { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+  .say .line { margin-top: 4px; font-size: 14.5px; color: var(--sub); font-style: italic; }
+
+  .stats-row { margin-top: 14px; display: flex; gap: 10px; }
+  .scard { flex: 1; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 11px 13px; }
+  .scard b { font-family: 'Gabarito', sans-serif; font-weight: 900; font-size: 22px; display: block; line-height: 1; letter-spacing: -.02em; }
+  .scard b.grad-txt { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .scard span { font-size: 10px; font-weight: 600; color: var(--sub); }
+  .scard.warn b { color: var(--coral); }
+
+  .nav {
+    position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex;
+    background: var(--card); border-radius: 999px; box-shadow: 0 14px 34px -12px rgba(33,29,24,.3);
+    padding: 9px 12px;
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: var(--faint); font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  .nav a svg { width: 21px; height: 21px; display: block; margin: 0 auto 2px; }
+  .nav a.active { color: var(--ink); }
+  .nav a.active svg { color: var(--coral); }
+
+  /* ── HISTORIE — mřížka koulí ────────────────────────────────── */
+  .h-head { margin-top: 18px; }
+  .h-head h2 { font-family: 'Gabarito', sans-serif; font-weight: 800; font-size: 27px; letter-spacing: -.02em; }
+  .h-head p { font-size: 12.5px; color: var(--sub); margin-top: 3px; }
+  .seg { display: flex; gap: 5px; background: var(--mist); border-radius: 999px; padding: 4px; margin-top: 14px; }
+  .seg span { flex: 1; text-align: center; font-size: 11.5px; font-weight: 800; padding: 7px 0; border-radius: 999px; color: var(--faint); }
+  .seg span.on { background: var(--card); color: var(--ink); box-shadow: 0 4px 10px -4px rgba(33,29,24,.25); }
+
+  .orbgrid { margin-top: 16px; background: var(--card); border-radius: 24px; box-shadow: var(--shadow); padding: 16px; }
+  .orbgrid .wk { display: flex; justify-content: space-between; margin-bottom: 11px; align-items: center; }
+  .orbgrid .wk:last-child { margin-bottom: 0; }
+  .orbgrid .wl { width: 34px; font-size: 9px; font-weight: 800; color: var(--faint); text-transform: uppercase; }
+  .o { width: 30px; height: 30px; border-radius: 50%; position: relative; }
+  .o.full { background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.7) 0 16%, transparent 45%), var(--grad); box-shadow: 0 4px 10px -3px rgba(255,93,126,.5); }
+  .o.part { background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.7) 0 16%, transparent 45%), var(--grad); filter: saturate(.45) opacity(.75); }
+  .o.rest { background: var(--amber-soft); box-shadow: inset 0 0 0 2px var(--amber); }
+  .o.empty { background: var(--mist); box-shadow: inset 0 0 0 1.5px var(--line); }
+  .o.now { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+  .orbgrid .cap { display: flex; justify-content: flex-end; gap: 10px; margin-top: 13px; font-size: 9px; font-weight: 700; color: var(--faint); align-items: center; }
+  .orbgrid .cap i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+  /* medailony */
+  .medals { margin-top: 16px; }
+  .medals h3 { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .medal-row { display: flex; gap: 10px; margin-top: 10px; }
+  .medal { flex: 1; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 12px 6px 10px; text-align: center; }
+  .medal .ring { width: 38px; height: 38px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; background: var(--grad); color: #fff; }
+  .medal .ring svg { width: 18px; height: 18px; }
+  .medal small { display: block; font-size: 8.5px; font-weight: 700; color: var(--sub); margin-top: 6px; line-height: 1.25; }
+  .medal.locked { opacity: .45; }
+  .medal.locked .ring { background: var(--mist); color: var(--faint); }
+
+  .h-stats { margin-top: 16px; display: flex; flex-direction: column; gap: 9px; }
+  .h-stat { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 11px 15px; }
+  .h-stat .nm { flex: 1; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: 14.5px; }
+  .h-stat .val { font-size: 11px; font-weight: 600; color: var(--sub); }
+  .h-stat .val b { color: var(--ink); font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 17 · kolo 6</div>
+  <h1>Puls</h1>
+  <p>„Směr 4 vypadá moderně, ale potřeboval by opravit" — tohle je ta oprava. Modernost špičkových
+  consumer appek 2026 (Amie, Family), ale s vlastní identitou místo iOS klonu: žádné sklo a blur,
+  teplý krém a jeden nezaměnitelný podpis — <b>živá koule dne</b>. Ráno bledá, každým check-inem
+  získává sytost, po posledním se rozzáří. Klidový den = koule tiše dýchá v jantaru. Historie je
+  mřížka koulí: měsíc energie na jeden pohled. Bez maskota, bez serifu — současný, teplý, rychlý.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Gabarito · Manrope</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#faf6f0"></i><i style="background:#211d18"></i><i style="background:linear-gradient(135deg,#ff8a5c,#ff5d7e,#8b5cf6)"></i><i style="background:#f0b243"></i></span></div>
+    <div><b>Podpis</b>živá koule dne · mřížka koulí · gradient korál→fialová</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — 1/3 dne rozsvíceno</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="week-pill">týden 28 · den 6</span>
+    </div>
+
+    <div class="orb-hero">
+      <div class="orb"></div>
+      <div class="orb-copy">
+        <h2>Sobota<br>11. července</h2>
+        <p><b>1 ze 3</b> rozsvíceno. Čtení máš na večer — koule čeká.</p>
+      </div>
+    </div>
+
+    <div class="habits">
+
+      <div class="habit">
+        <div class="row1">
+          <span class="hicon grad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 8v8M17 8v8M4 10v4M20 10v4M7 12h10"/></svg></span>
+          <div class="body">
+            <div class="name">Cvičení</div>
+            <div class="plan">Trénink B — kruhy, lehce · 10 min</div>
+          </div>
+          <span class="chip done">Hotovo 9:41</span>
+        </div>
+      </div>
+
+      <div class="habit">
+        <div class="row1">
+          <span class="hicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 6c-2-1.6-5-1.6-8-.8V19c3-.8 6-.8 8 .8 2-1.6 5-1.6 8-.8V5.2c-3-.8-6-.8-8 .8Z M12 6v13.5"/></svg></span>
+          <div class="body">
+            <div class="name">Čtení</div>
+            <div class="plan">Zaklínač, kapitola dál · 15 min</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="pill p-done">Hotovo</span>
+          <span class="pill p-rest">Klid</span>
+          <span class="pill p-miss">Dnes ne</span>
+        </div>
+      </div>
+
+      <div class="habit">
+        <div class="row1">
+          <span class="hicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 4.5L19 9l-4 3 1 5-4-2.5L8 17l1-5-4-3 5-1.5Z"/></svg></span>
+          <div class="body">
+            <div class="name">QA/AI učení</div>
+            <div class="plan">Playwright den 6 + zápis · 15 min</div>
+          </div>
+          <span class="chip rest">Klidový den</span>
+        </div>
+      </div>
+
+      <div class="reward">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><b>Šachy</b> — bonus mimo kouli. Jen když máš chuť.</span>
+      </div>
+
+    </div>
+
+    <div class="say">
+      <label>Věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="scard"><b class="grad-txt">6 dní</b><span>v řadě</span></div>
+      <div class="scard"><b>86 %</b><span>energie týdne</span></div>
+      <div class="scard warn"><b>čtení 2×</b><span>zmenšíme dávku?</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V2M12 22v-2.5M4.5 12H2M22 12h-2.5" stroke-linecap="round"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="2.6"/><circle cx="17" cy="7" r="2.6"/><circle cx="7" cy="17" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg>Měsíc</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — měsíc energie</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="week-pill">192 dní</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Měsíc energie</h2>
+      <p>každý den jedna koule · sytost = kolik ses rozsvítil</p>
+    </div>
+
+    <div class="seg"><span class="on">Koule</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="orbgrid">
+      <div class="wk"><span class="wl">T24</span><span class="o part"></span><span class="o full"></span><span class="o empty"></span><span class="o part"></span><span class="o full"></span><span class="o part"></span><span class="o full"></span></div>
+      <div class="wk"><span class="wl">T25</span><span class="o full"></span><span class="o part"></span><span class="o rest"></span><span class="o full"></span><span class="o part"></span><span class="o full"></span><span class="o part"></span></div>
+      <div class="wk"><span class="wl">T26</span><span class="o part"></span><span class="o full"></span><span class="o full"></span><span class="o empty"></span><span class="o full"></span><span class="o part"></span><span class="o full"></span></div>
+      <div class="wk"><span class="wl">T27</span><span class="o full"></span><span class="o full"></span><span class="o rest"></span><span class="o full"></span><span class="o full"></span><span class="o part"></span><span class="o full"></span></div>
+      <div class="wk"><span class="wl">T28</span><span class="o full"></span><span class="o full"></span><span class="o rest"></span><span class="o full"></span><span class="o full"></span><span class="o part now"></span><span class="o empty"></span></div>
+      <div class="cap">
+        <span><i style="background:linear-gradient(135deg,#ff8a5c,#ff5d7e,#8b5cf6)"></i> plný den</span>
+        <span><i style="background:#fdf3de;box-shadow:inset 0 0 0 2px #f0b243"></i> klid</span>
+        <span><i style="background:#f3ede4;box-shadow:inset 0 0 0 1.5px #eee7dc"></i> prázdný</span>
+      </div>
+    </div>
+
+    <div class="medals">
+      <h3>Milníky</h3>
+      <div class="medal-row">
+        <div class="medal"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span><small>7 dní<br>v řadě</small></div>
+        <div class="medal"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5"/><path d="M9 12.5l2 2 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>28 bez<br>„2× po sobě"</small></div>
+        <div class="medal"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17l4-9 3 5 3-3"/></svg></span><small>Návrat<br>po pauze</small></div>
+        <div class="medal locked"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5" stroke-dasharray="3.5 3.5"/></svg></span><small>30 dní<br>v řadě</small></div>
+        <div class="medal locked"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5" stroke-dasharray="3.5 3.5"/></svg></span><small>100 dní<br>v řadě</small></div>
+      </div>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · řada 9</span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · řada 5</span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · řada 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5V2M12 22v-2.5M4.5 12H2M22 12h-2.5" stroke-linecap="round"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="2.6"/><circle cx="17" cy="7" r="2.6"/><circle cx="7" cy="17" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg>Měsíc</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

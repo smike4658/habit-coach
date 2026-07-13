@@ -234,3 +234,27 @@ nerozbíjí celek) přímo v mechanice metafory:
 Stav velkého výběru (kola 1–5, 15 směrů): nasazená je Stezka (W3.5 d.1–3);
 kandidáti na pivot/hybrid: Výprava (11), Poutník (12), Herbář (13),
 Temná komora (14), Modrotisk (15). Rozhoduje Michal.
+
+## 8. Kolo 6 — dva směry do Michalova vkusu (2026-07-12)
+
+Zpětná vazba po kole 5: „žádná další verze se mi nelíbila; 11/12 super ale pro
+děti [11] / pro starší lidi [12]; směr 3 dobrý; směr 4 moderní, ale potřeboval by
+opravit." → Vkusový profil: **odvaha a energie (3) + modernost (4)**, žádný cartoon,
+žádné heritage/retro rekvizity. Kolo 6 míří přesně do té mezery:
+
+| | **Směr 16 — Forma** | **Směr 17 — Puls** |
+|---|---|---|
+| Koncept | buduješ formu — moderní athletic brand (Nike Training / Strava) | moderní consumer produkt 2026 (Amie/Family) = „oprava směru 4": modernost s vlastní identitou, žádné sklo/blur |
+| Skip = | **recovery den** — v tréninku předepsaný, přetrénování škodí (nejsilnější sportovní mapování pravidla) | klidový den — koule tiše dýchá v jantaru (klid je stav, ne prázdno) |
+| Podpis | load-bary; **odznaky = kotouče přibývající na osu činky**; „trenér ladí plán" při 2× | **živá koule dne** (gradient korál→fialová, sytost roste s check-iny); historie = mřížka koulí „měsíc energie" |
+| Typografie | Anybody (kondenzovaná italika) · Geist · Geist Mono | Gabarito · Manrope |
+| Paleta | grafit #131518 · volt #d8f34f · steel (recovery) · červená | teplý krém · gradient #ff8a5c→#ff5d7e→#8b5cf6 · jantar (klid) |
+| Tón | energický, rychlý, „výkonový" vizuál (pozor: metafora loadu se musí hlídat, ať nesklouzne k výkonu nad kontinuitu) | teplý, živý, produktový; nejblíž „reálná appka z App Store 2026" |
+| Nativní režim | dark (večerní check-in OK) | light (dark = pozdější varianta) |
+
+Oba směry nesou pravidla kouče (skip ≠ selhání, 2× po sobě = zásah trenéra/kouče)
+a žádný nemá maskota, serif ani retro. Ověřeno vizuálně v prohlížeči (opraven
+překryv popisků kotoučů v 16 a tvrdá hrana koule v 17).
+
+Užší výběr po 6 kolech (podle Michalových reakcí): **3 · 4→17 · 16** (+ nasazená
+Stezka jako současný stav). Rozhoduje Michal.

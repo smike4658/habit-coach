@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 19: Oblouk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 19 — „OBLOUK" (jazyk směru 3 bez vesmíru · den = oblouk slunce)
+  Zadání: nejzajímavější byl směr 3 (retro plakát: tlusté obrysy,
+  pruhy, odznaky, optimismus), ale byl o astronautech. Tohle je ten
+  samý grafický jazyk uzemněný do nejpřirozenějšího tématu appky:
+  DEN JE OBLOUK SLUNCE. Ranní návyky u východu, večerní u západu,
+  slunce putuje obloukem a razítkuje zastávky.
+
+  Klíčová poctivost: SKIP = ZA MRAKEM — den běží dál, slunce jen
+  není vidět; mrak není selhání. Dvě zatažená rána po sobě =
+  „zataženo", kouč stahuje dávku.
+
+  Vizuální jazyk (dědictví směru 3): krém + navy obrysy 2 px +
+  tvrdé offset stíny, SUNSET PRUHY zlato→oranž→cihla→navy jako
+  podpis značky (místo mission-stripe), samolepky SPLNĚNO/ZA MRAKEM,
+  odznaky = šité nášivky. ŽÁDNÁ ZELENÁ, žádné hvězdičky, žádný vesmír.
+
+  Historie = PLAKÁTOVÁ ZEĎ DNÍ: každý den malý horizont se sluncem —
+  plné zlaté slunce / slunce za mrakem / půl-vyšlé / prázdný obzor.
+
+  TYPOGRAFIE: Unbounded (display — hlas směru 3, dědíme záměrně) ·
+  Familjen Grotesk (tělo).
+
+  MOTION PRINCIPY:
+  - slunce po check-inu popojede obloukem (400 ms, ease-in-out)
+    a nad zastávkou krátce zapulzuje (scale 1→1.15→1)
+  - samolepka SPLNĚNO: pop-in s rotací -4°, 220 ms
+  - ZA MRAKEM: mrak připluje zleva (translateX, 300 ms) před slunce
+  - sunset pruhy: nasunou se zleva stagger 60 ms při otevření
+  - plakátová zeď: dlaždice flip-in po řádcích (rotateX 12°→0)
+  - prefers-reduced-motion: vše statické
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --cream: #f7efdd;
+    --card: #fdf8ea;
+    --navy: #1e2a52;
+    --navy-soft: #5a6386;
+    --faint: #9aa0b8;
+    --line: #d8cfb6;
+    --gold: #efa93d;
+    --orange: #e4572e;
+    --brick: #b23b2e;
+    --sky: #f3e3c2;
+    --shadow: 4px 4px 0 var(--navy);
+    --shadow-sm: 3px 3px 0 var(--navy);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream); color: var(--navy);
+    font-family: 'Familjen Grotesk', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Unbounded', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--orange); }
+  .intro h1 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 42px; letter-spacing: -.01em; margin-top: 6px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--navy-soft); font-size: 14.5px; line-height: 1.6; }
+  .intro p b { color: var(--navy); }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--navy-soft); }
+  .meta b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--navy); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--cream); border-radius: 30px;
+    border: 2.5px solid var(--navy); box-shadow: 8px 8px 0 rgba(30,42,82,.22);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 20px 18px 102px; }
+
+  /* sunset pruh — podpis značky */
+  .sunstripe { display: flex; height: 8px; border-radius: 999px; overflow: hidden; border: 1.5px solid var(--navy); }
+  .sunstripe i { flex: 1; }
+  .sunstripe i:nth-child(1) { background: var(--gold); }
+  .sunstripe i:nth-child(2) { background: var(--orange); }
+  .sunstripe i:nth-child(3) { background: var(--brick); }
+  .sunstripe i:nth-child(4) { background: var(--navy); }
+
+  .top { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+  .word { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: -.01em; }
+  .word i { font-style: normal; color: var(--orange); }
+  .daychip { font-family: 'Unbounded', sans-serif; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--card); border: 2px solid var(--navy); border-radius: 999px; padding: 6px 12px; box-shadow: var(--shadow-sm); }
+
+  /* ── oblouk slunce ──────────────────────────────────────────── */
+  .arc-panel {
+    margin-top: 16px; background: var(--sky); border: 2.5px solid var(--navy); border-radius: 20px;
+    box-shadow: var(--shadow); overflow: hidden; position: relative;
+  }
+  .arc-panel svg { width: 100%; display: block; }
+  .arc-panel .date { position: absolute; top: 12px; left: 13px; background: rgba(243,227,194,.94); border-radius: 10px; padding: 3px 8px 5px; box-shadow: 0 0 10px 8px rgba(243,227,194,.94); }
+  .arc-panel .date h2 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 21px; line-height: 1.05; }
+  .arc-panel .date p { font-size: 11.5px; color: var(--navy-soft); margin-top: 3px; font-weight: 500; }
+
+  /* ── zastávky dne ───────────────────────────────────────────── */
+  .stops { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .stop { background: var(--card); border: 2.5px solid var(--navy); border-radius: 18px; box-shadow: var(--shadow); padding: 13px 14px; display: flex; align-items: center; gap: 12px; position: relative; }
+  .sunmark { width: 44px; height: 44px; flex: none; border: 2.5px solid var(--navy); border-radius: 14px; display: grid; place-items: center; background: var(--cream); }
+  .sunmark svg { width: 26px; height: 26px; }
+  .sunmark.lit { background: var(--gold); }
+  .sunmark.cloud { background: var(--sky); }
+  .stop .body { flex: 1; min-width: 0; }
+  .stop .name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 13.5px; }
+  .stop .plan { font-size: 12.5px; color: var(--navy-soft); margin-top: 2px; }
+  .stop .when { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-top: 3px; }
+
+  .acts { display: flex; gap: 6px; }
+  .a { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--navy); background: var(--card); display: grid; place-items: center; color: var(--navy-soft); box-shadow: 2px 2px 0 var(--navy); }
+  .a svg { width: 15px; height: 15px; }
+  .a.on { transform: translate(2px,2px); box-shadow: none; }
+  .a.on-sun { background: var(--gold); color: var(--navy); }
+  .a.on-cloud { background: var(--sky); color: var(--navy); }
+  .a.on-dark { background: var(--brick); color: var(--cream); }
+
+  .sticker {
+    position: absolute; top: -12px; right: 14px; transform: rotate(-3deg);
+    font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 8px; letter-spacing: .08em;
+    border: 2px solid var(--navy); border-radius: 999px; padding: 3px 10px; box-shadow: 2px 2px 0 var(--navy);
+  }
+  .sticker.done { background: var(--gold); color: var(--navy); }
+  .sticker.cloud { background: var(--card); color: var(--navy); }
+
+  .reward { display: flex; align-items: center; gap: 11px; border: 2.5px dashed var(--navy-soft); border-radius: 18px; padding: 11px 14px; font-size: 12.5px; color: var(--navy-soft); }
+  .reward b { color: var(--navy); }
+  .reward .glyph { width: 18px; color: var(--navy-soft); flex: none; }
+
+  .say { margin-top: 15px; background: var(--card); border: 2.5px solid var(--navy); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 11px 14px; }
+  .say label { font-family: 'Unbounded', sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+  .say .line { margin-top: 4px; font-size: 14px; color: var(--navy-soft); font-style: italic; }
+
+  .tiles { margin-top: 15px; display: flex; gap: 10px; }
+  .tile { flex: 1; border: 2.5px solid var(--navy); border-radius: 16px; padding: 10px 12px; box-shadow: var(--shadow-sm); }
+  .tile.gold { background: var(--gold); }
+  .tile.plain { background: var(--card); }
+  .tile.alert { background: var(--brick); color: var(--cream); }
+  .tile b { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 17px; display: block; line-height: 1.1; }
+  .tile span { font-size: 10px; font-weight: 600; opacity: .8; }
+
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--navy); padding: 11px 10px calc(13px + env(safe-area-inset-bottom, 8px));
+  }
+  .nav a { flex: 1; text-align: center; text-decoration: none; color: rgba(247,239,221,.5); font-family: 'Unbounded', sans-serif; font-size: 7.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .nav a svg { width: 20px; height: 20px; display: block; margin: 0 auto 4px; }
+  .nav a.active { color: var(--cream); }
+  .nav a.active svg { color: var(--gold); }
+
+  /* ── HISTORIE: plakátová zeď dní ────────────────────────────── */
+  .h-head { margin-top: 16px; }
+  .h-head h2 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 24px; letter-spacing: -.01em; }
+  .h-head p { font-size: 12.5px; color: var(--navy-soft); margin-top: 4px; }
+  .seg { display: flex; margin-top: 14px; border: 2.5px solid var(--navy); border-radius: 999px; overflow: hidden; box-shadow: var(--shadow-sm); background: var(--card); }
+  .seg span { flex: 1; text-align: center; font-family: 'Unbounded', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 9px 0; color: var(--navy-soft); }
+  .seg span.on { background: var(--navy); color: var(--cream); }
+
+  .wall { margin-top: 15px; background: var(--card); border: 2.5px solid var(--navy); border-radius: 20px; box-shadow: var(--shadow); padding: 14px 12px 10px; }
+  .wall .wk { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .wall .wl { width: 26px; font-family: 'Unbounded', sans-serif; font-size: 7.5px; font-weight: 700; color: var(--faint); }
+  .day-poster { flex: 1; aspect-ratio: 1; border: 2px solid var(--navy); border-radius: 8px; overflow: hidden; position: relative; background: var(--sky); }
+  .day-poster i { position: absolute; left: 0; right: 0; bottom: 0; height: 34%; background: var(--cream); border-top: 2px solid var(--navy); }
+  .day-poster s { position: absolute; left: 50%; width: 46%; aspect-ratio: 1; border-radius: 50%; transform: translateX(-50%); border: 2px solid var(--navy); }
+  .day-poster.full s { top: 14%; background: var(--gold); }
+  .day-poster.half s { top: 40%; background: var(--orange); }
+  .day-poster.cloudy s { top: 18%; background: var(--gold); }
+  .day-poster.cloudy:after { content: ''; position: absolute; top: 30%; left: 16%; width: 68%; height: 26%; background: var(--card); border: 2px solid var(--navy); border-radius: 999px; }
+  .day-poster.dark { background: var(--navy); }
+  .day-poster.dark i { background: #2c3a6b; border-top-color: #0f1734; }
+  .day-poster.empty s { display: none; }
+  .day-poster.now { outline: 3px solid var(--orange); outline-offset: 2px; }
+  .wall .legend { display: flex; justify-content: center; gap: 12px; margin-top: 10px; font-size: 9.5px; font-weight: 600; color: var(--navy-soft); }
+
+  .patches { margin-top: 16px; display: flex; gap: 9px; }
+  .patch { flex: 1; border: 2.5px solid var(--navy); border-radius: 12px; background: var(--card); box-shadow: var(--shadow-sm); padding: 9px 4px 7px; text-align: center; position: relative; overflow: hidden; }
+  .patch .pstripe { display: flex; height: 5px; margin: -9px -4px 7px; }
+  .patch .pstripe i { flex: 1; }
+  .patch b { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 14px; display: block; }
+  .patch small { font-size: 8px; font-weight: 600; color: var(--navy-soft); display: block; line-height: 1.2; margin-top: 2px; }
+  .patch.locked { opacity: .35; box-shadow: none; }
+
+  .h-stats { margin-top: 15px; display: flex; flex-direction: column; gap: 9px; }
+  .h-stat { display: flex; align-items: center; gap: 12px; background: var(--card); border: 2.5px solid var(--navy); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 10px 14px; }
+  .h-stat .nm { flex: 1; font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 12px; }
+  .h-stat .val { font-size: 11.5px; font-weight: 600; color: var(--navy-soft); }
+  .h-stat .val b { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="tag">Směr 19 · kolo 8 · dědic směru 3</div>
+  <h1>Oblouk</h1>
+  <p>Grafický jazyk směru 3 — tlusté navy obrysy, tvrdé stíny, samolepky, nášivky, retro-plakátový
+  optimismus — bez jediného astronauta. Uzemněný do nejpřirozenějšího tématu appky: <b>den je
+  oblouk slunce</b>. Ranní návyky u východu, večerní u západu, slunce putuje obloukem a razítkuje
+  zastávky. <b>Skip = za mrakem</b> — den běží dál, slunce jen není vidět. Podpis značky: sunset
+  pruh zlato→oranž→cihla→navy. Historie je plakátová zeď dní. Žádná zelená, žádné hvězdičky.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Unbounded · Familjen Grotesk</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#f7efdd"></i><i style="background:#1e2a52"></i><i style="background:#efa93d"></i><i style="background:#e4572e"></i><i style="background:#b23b2e"></i></span></div>
+    <div><b>Podpis</b>oblouk slunce · sunset pruh · plakátová zeď dní</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — slunce na oblouku</div>
+  <div class="phone"><div class="screen">
+
+    <div class="sunstripe"><i></i><i></i><i></i><i></i></div>
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="daychip">Týden 28 · Den 6</span>
+    </div>
+
+    <div class="arc-panel">
+      <div class="date">
+        <h2>Sobota<br>11. čvc</h2>
+        <p>2 zastávky před západem</p>
+      </div>
+      <svg viewBox="0 0 350 178">
+        <!-- oblouk dne -->
+        <path d="M25 160 Q175 -40 325 160" fill="none" stroke="#1e2a52" stroke-width="2.5" stroke-dasharray="7 8"/>
+        <!-- horizont -->
+        <rect x="0" y="158" width="350" height="20" fill="#f7efdd"/>
+        <line x1="0" y1="158" x2="350" y2="158" stroke="#1e2a52" stroke-width="2.5"/>
+        <!-- zastávka ráno: odbavená (zlaté sluníčko) -->
+        <circle cx="100" cy="85" r="11" fill="#efa93d" stroke="#1e2a52" stroke-width="2.5"/>
+        <path d="M100 68v-6M100 108v-6M83 85h-6M123 85h-6M88 73l-4-4M116 97l-4-4M112 73l4-4M88 97l-4 4" stroke="#1e2a52" stroke-width="2" stroke-linecap="round"/>
+        <!-- slunce teď (t=0.6) -->
+        <circle cx="205" cy="64" r="17" fill="#e4572e" stroke="#1e2a52" stroke-width="2.5"/>
+        <circle cx="205" cy="64" r="8" fill="#efa93d" stroke="#1e2a52" stroke-width="1.6"/>
+        <!-- zastávka večer: čeká -->
+        <circle cx="280" cy="109" r="10" fill="#fdf8ea" stroke="#1e2a52" stroke-width="2.5" stroke-dasharray="3.5 3.5"/>
+        <!-- mrak nad QA (za mrakem) -->
+        <g transform="translate(232,26)">
+          <ellipse cx="20" cy="12" rx="20" ry="10" fill="#fdf8ea" stroke="#1e2a52" stroke-width="2"/>
+          <ellipse cx="34" cy="8" rx="12" ry="8" fill="#fdf8ea" stroke="#1e2a52" stroke-width="2"/>
+        </g>
+        <!-- popisky časů -->
+        <g font-family="'Familjen Grotesk', sans-serif" font-size="9" font-weight="700" fill="#5a6386">
+          <text x="14" y="172">VÝCHOD</text>
+          <text x="292" y="172">ZÁPAD</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="stops">
+
+      <div class="stop">
+        <span class="sticker done">SPLNĚNO · 9:41</span>
+        <span class="sunmark lit">
+          <svg viewBox="0 0 26 26" fill="none" stroke="#1e2a52" stroke-width="2.2" stroke-linecap="round"><circle cx="13" cy="13" r="5.5" fill="#fdf8ea"/><path d="M13 3.5v2M13 20.5v2M3.5 13h2M20.5 13h2M6 6l1.5 1.5M18.5 18.5L20 20M20 6l-1.5 1.5M7.5 18.5L6 20"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="plan">Trénink B — kruhy, lehce · 10 min</div>
+          <div class="when">Ranní zastávka</div>
+        </div>
+        <div class="acts">
+          <span class="a on on-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="10" cy="13" rx="7" ry="4.5"/><ellipse cx="16" cy="10.5" rx="5" ry="3.5"/></svg></span>
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="stop">
+        <span class="sunmark">
+          <svg viewBox="0 0 26 26" fill="none" stroke="#1e2a52" stroke-width="2.2" stroke-linecap="round"><path d="M4 17a9 9 0 0118 0" /><line x1="2" y1="17" x2="24" y2="17"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="plan">Zaklínač, kapitola dál · 15 min</div>
+          <div class="when">Večerní zastávka · před západem</div>
+        </div>
+        <div class="acts">
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="10" cy="13" rx="7" ry="4.5"/><ellipse cx="16" cy="10.5" rx="5" ry="3.5"/></svg></span>
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="stop">
+        <span class="sticker cloud">☁ ZA MRAKEM</span>
+        <span class="sunmark cloud">
+          <svg viewBox="0 0 26 26" fill="none" stroke="#1e2a52" stroke-width="2"><circle cx="10" cy="10" r="5" fill="#efa93d"/><ellipse cx="14" cy="15" rx="9" ry="5" fill="#fdf8ea"/><ellipse cx="20" cy="12" rx="5" ry="3.5" fill="#fdf8ea"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="plan">Playwright den 6 + zápis · 15 min</div>
+          <div class="when">Denní zastávka</div>
+        </div>
+        <div class="acts">
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M4 13l5 5L20 6"/></svg></span>
+          <span class="a on on-cloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="10" cy="13" rx="7" ry="4.5"/><ellipse cx="16" cy="10.5" rx="5" ry="3.5"/></svg></span>
+          <span class="a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+      </div>
+
+      <div class="reward">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><b>Šachy</b> — večerní dostaveníčko po západu. Jen když máš chuť.</span>
+      </div>
+
+    </div>
+
+    <div class="say">
+      <label>Věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile gold"><b>6 dní</b><span>slunce v řadě</span></div>
+      <div class="tile plain"><b>86 %</b><span>jasno týdne</span></div>
+      <div class="tile alert"><b>2×</b><span>čtení — zataženo</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5"/><path d="M12 4.5V6M4 13H2.5M21.5 13H20M6 7l1 1M18 7l-1 1"/><path d="M4 20h16"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>Zeď</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — plakátová zeď dní</div>
+  <div class="phone"><div class="screen">
+
+    <div class="sunstripe"><i></i><i></i><i></i><i></i></div>
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="daychip">192 dní</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Zeď dní</h2>
+      <p>každý den jeden plakát · kam až slunce vyšlo</p>
+    </div>
+
+    <div class="seg"><span class="on">Zeď</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="wall">
+      <div class="wk"><span class="wl">T24</span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster empty"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+      </div>
+      <div class="wk"><span class="wl">T25</span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster cloudy"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster dark"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+      </div>
+      <div class="wk"><span class="wl">T26</span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster empty"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+      </div>
+      <div class="wk"><span class="wl">T27</span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster cloudy"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+      </div>
+      <div class="wk"><span class="wl">T28</span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster cloudy"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster full"><s></s><i></i></span>
+        <span class="day-poster half now"><s></s><i></i></span>
+        <span class="day-poster empty"><s></s><i></i></span>
+      </div>
+      <div class="legend"><span>🌞 plný den</span><span>🌅 část</span><span>☁ klid</span><span>🌑 vynecháno</span></div>
+    </div>
+
+    <div class="patches">
+      <div class="patch"><span class="pstripe"><i style="background:#efa93d"></i><i style="background:#e4572e"></i><i style="background:#b23b2e"></i><i style="background:#1e2a52"></i></span><b>7</b><small>dní slunce</small></div>
+      <div class="patch"><span class="pstripe"><i style="background:#efa93d"></i><i style="background:#e4572e"></i><i style="background:#b23b2e"></i><i style="background:#1e2a52"></i></span><b>28</b><small>bez „2×"</small></div>
+      <div class="patch"><span class="pstripe"><i style="background:#efa93d"></i><i style="background:#e4572e"></i><i style="background:#b23b2e"></i><i style="background:#1e2a52"></i></span><b>↺</b><small>návrat</small></div>
+      <div class="patch locked"><span class="pstripe"><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i></span><b>30</b><small>dní</small></div>
+      <div class="patch locked"><span class="pstripe"><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i><i style="background:#d8cfb6"></i></span><b>100</b><small>dní</small></div>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm">Cvičení</span><span class="val"><b>12/14</b> · 86 % · řada 9</span></div>
+      <div class="h-stat"><span class="nm">Čtení</span><span class="val"><b>8/14</b> · 57 % · řada 5</span></div>
+      <div class="h-stat"><span class="nm">QA/AI</span><span class="val"><b>11/14</b> · 79 % · řada 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="4.5"/><path d="M12 4.5V6M4 13H2.5M21.5 13H20M6 7l1 1M18 7l-1 1"/><path d="M4 20h16"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>Zeď</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

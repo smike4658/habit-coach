@@ -284,3 +284,26 @@ Proti: M3E vlna může za 2–3 roky zestárnout jako každý systémový trend;
 chce kvalitní morph implementaci (flubber/SVG interpolace), jinak ztratí kouzlo.
 
 **Finální kandidáti po 7 kolech (18 směrů): 3 · 16 · 17 · 18** + nasazená Stezka.
+
+## 10. Kolo 8 — Oblouk: dědic směru 3 bez vesmíru (2026-07-12)
+
+Mockup: `smer-19.html`. Zpětná vazba k 18: hvězdička (sušenka) a zelená se nelíbí;
+nejzajímavější zůstává **směr 3**, jen byl o astronautech — „vezmi si z něj inspiraci."
+
+**Směr 19 — „Oblouk"** dědí grafický jazyk směru 3 (tlusté navy obrysy 2–2.5 px,
+tvrdé offset stíny, samolepky, nášivky, retro-plakátový optimismus, Unbounded +
+Familjen Grotesk) a uzemňuje ho do nejpřirozenějšího tématu appky: **den je oblouk
+slunce**. Ranní návyky u východu, večerní u západu; slunce putuje obloukem
+a razítkuje zastávky. **Skip = za mrakem** — den běží dál, slunce jen není vidět;
+dvě zatažení po sobě = „zataženo", kouč stahuje dávku. Podpis značky: **sunset pruh**
+zlato→oranž→cihla→navy (nahrazuje mission-stripe). Historie = **plakátová zeď dní**
+(každý den mini horizont: plné zlaté slunce / za mrakem / půl-vyšlé / navy noc),
+odznaky = nášivky se sunset pruhem. Žádná zelená, žádné hvězdičky, žádný vesmír.
+
+Pro: přesně trefuje „nejzajímavější byl 3, ale bez vesmíru"; oblouk dne přirozeně
+kóduje ČAS návyků (ráno/den/večer) — to žádný jiný směr neumí; „za mrakem" je
+nejlaskavější skip metafora. Proti: retro-plakát je výrazný závazek (jako 3);
+slunce-téma svádí ke kýči — drženo tvrdou geometrií, ne gradienty.
+
+**Finální kandidáti po 8 kolech (19 směrů): 3 → 19 (jeho neastronautský dědic) ·
+16 Forma · 17 Puls · 18 Expres** + nasazená Stezka. Rozhoduje Michal.

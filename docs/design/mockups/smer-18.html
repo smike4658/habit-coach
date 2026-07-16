@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitnaut — Směr 18: Expres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,600;0,700;0,800;0,900;1,800&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  SMĚR 18 — „EXPRES" (2026 trend-cocktail · tvar = stav)
+  Rešerše (trends-2026.md + web 7/2026): nejchytlavější živý jazyk je
+  MATERIAL 3 EXPRESSIVE (Google 2025/26) — 35 tvarů + shape-morphing,
+  pružinová fyzika místo časovaných animací, přehnaná typografie,
+  tonální barevné bloky; výzkumně podložené „design má vyvolat emoci".
+  K tomu drží: dopamine barvy, kinetické oversized titulky, bento.
+
+  Tohle NENÍ Android klon — je to vlastní podoba toho jazyka:
+
+  TVAR = STAV (podpis směru): každý stav check-inu má vlastní tvar,
+  ne jen barvu. Splněno = vroubkovaná sušenka (cookie), klid = pilulka,
+  vynecháno = kosočtverec, prázdno = tečkovaný kruh. Check-in = morph
+  kruhu do sušenky (pružinově). Historie = KALENDÁŘ Z TVARŮ — měsíc
+  přečteš podle siluet i bez barev (přístupnost zdarma).
+
+  Hero: velká limetková sušenka s 1/3 uvnitř — přes den se jí
+  „dopékají" vroubky (kruh → sušenka), večer se dopeče celá.
+
+  TYPOGRAFIE: Urbanist (display 800/900 — geometrický, těsný,
+  kinetický) · Lexend (tělo — čitelnost first). Čísla přehnaně velká.
+
+  MOTION PRINCIPY (pružiny, ne durations):
+  - check-in: tvar morphne kruh→sušenka pružinou (overshoot ~8 %),
+    barva dojede za tvarem o 80 ms později
+  - hero sušenka: při každém check-inu přibude třetina vroubků
+    (morph segmentu), po posledním celá pružně „dopeče" + squash
+  - stavové tvary v kalendáři: stagger pop po řádcích (scale spring)
+  - nav pilulka: aktivní položka morphne do ink pilulky (šířka spring)
+  - loading: morfující tvar (kruh→kosočtverec→sušenka) à la M3E
+  - prefers-reduced-motion: bez pružin, okamžité stavy
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --paper: #faf6ef;
+    --card: #ffffff;
+    --ink: #1c1a22;
+    --sub: #6d6a75;
+    --faint: #aca9b4;
+    --lime: #c9f16a;
+    --lime-deep: #87b32a;
+    --lime-soft: #eef9d4;
+    --iris: #7c6cf6;
+    --iris-soft: #eceafd;
+    --tang: #ff8a3d;
+    --red: #f2543d;
+    --red-soft: #fde3dd;
+    --mist: #f1ede4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Lexend', system-ui, sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .intro { max-width: 900px; margin: 0 auto 36px; }
+  .intro .tag { font-family: 'Urbanist', sans-serif; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: var(--iris); }
+  .intro h1 { font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 46px; letter-spacing: -.03em; margin-top: 2px; }
+  .intro p { max-width: 68ch; margin-top: 10px; color: var(--sub); font-size: 14.5px; line-height: 1.6; font-weight: 300; }
+  .intro p b { font-weight: 600; color: var(--ink); }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px 34px; margin-top: 18px; font-size: 12.5px; color: var(--sub); }
+  .meta b { display: block; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 22px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(28,26,34,.12); }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  .frame-label { font-family: 'Urbanist', sans-serif; font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); text-align: center; margin-bottom: 12px; }
+
+  .phone {
+    width: 390px; background: var(--paper); border-radius: 38px;
+    box-shadow: inset 0 0 0 1px rgba(28,26,34,.08), 0 30px 70px -30px rgba(28,26,34,.4);
+    overflow: hidden; position: relative;
+  }
+  .screen { padding: 24px 18px 106px; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .word { font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 19px; letter-spacing: -.02em; }
+  .word i { font-style: normal; color: var(--lime-deep); }
+  .week-chip { font-family: 'Urbanist', sans-serif; font-size: 11px; font-weight: 800; background: var(--mist); border-radius: 999px; padding: 7px 14px; color: var(--sub); }
+
+  /* ── hero: sušenka dne + kinetické datum ────────────────────── */
+  .hero { margin-top: 18px; display: flex; align-items: center; gap: 16px; }
+  .cookie-wrap { width: 118px; height: 118px; flex: none; position: relative; display: grid; place-items: center; }
+  .cookie-wrap svg { position: absolute; inset: 0; }
+  .cookie-wrap .num { position: relative; font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 30px; letter-spacing: -.04em; }
+  .cookie-wrap .num small { font-size: 16px; font-weight: 800; color: rgba(28,26,34,.55); }
+  .hero-copy h2 { font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 33px; line-height: .96; letter-spacing: -.035em; }
+  .hero-copy h2 em { font-style: normal; color: var(--iris); }
+  .hero-copy p { font-size: 12.5px; color: var(--sub); margin-top: 7px; line-height: 1.5; font-weight: 300; }
+  .hero-copy p b { font-weight: 600; color: var(--ink); }
+
+  /* ── řádky návyků: tvar = stav ──────────────────────────────── */
+  .list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .item { background: var(--card); border-radius: 26px; padding: 14px 15px; display: flex; align-items: center; gap: 13px; box-shadow: 0 8px 24px -14px rgba(28,26,34,.25); }
+  .item.tonal-lime { background: var(--lime-soft); }
+  .item.tonal-iris { background: var(--iris-soft); }
+  .stateshape { width: 46px; height: 46px; flex: none; display: grid; place-items: center; }
+  .stateshape svg { width: 46px; height: 46px; }
+  .item .body { flex: 1; min-width: 0; }
+  .item .name { font-family: 'Urbanist', sans-serif; font-weight: 800; font-size: 16.5px; letter-spacing: -.02em; }
+  .item .plan { font-size: 12px; color: var(--sub); margin-top: 2px; font-weight: 300; }
+  .item .state-word { font-family: 'Urbanist', sans-serif; font-size: 10.5px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .state-word.done { color: var(--lime-deep); }
+  .state-word.rest { color: var(--iris); }
+
+  .shape-legend { display: flex; gap: 5px; }
+  .sl { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 999px; background: var(--mist); }
+  .sl svg { width: 18px; height: 18px; }
+
+  .reward { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 26px; border: 1.5px dashed #d9d4c8; color: var(--sub); font-size: 12px; font-weight: 300; }
+  .reward b { color: var(--ink); font-weight: 600; }
+  .reward .glyph { width: 18px; color: var(--faint); flex: none; }
+
+  .say { margin-top: 14px; background: var(--card); border-radius: 26px; box-shadow: 0 8px 24px -14px rgba(28,26,34,.25); padding: 13px 16px; }
+  .say label { font-family: 'Urbanist', sans-serif; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  .say .line { margin-top: 4px; font-size: 14px; color: var(--sub); font-style: italic; font-weight: 300; }
+
+  .numbers { margin-top: 16px; display: flex; gap: 10px; }
+  .nm { flex: 1; border-radius: 22px; padding: 12px 14px; }
+  .nm.lime { background: var(--lime); }
+  .nm.plain { background: var(--mist); }
+  .nm.alert { background: var(--red-soft); }
+  .nm b { font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 24px; letter-spacing: -.03em; display: block; line-height: 1; }
+  .nm.alert b { color: var(--red); }
+  .nm span { font-size: 10px; color: rgba(28,26,34,.6); font-weight: 400; }
+
+  .nav {
+    position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; gap: 4px;
+    background: var(--card); border-radius: 999px; padding: 7px;
+    box-shadow: 0 16px 40px -16px rgba(28,26,34,.4);
+  }
+  .nav a { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; color: var(--faint); font-family: 'Urbanist', sans-serif; font-size: 11px; font-weight: 800; padding: 10px 0; border-radius: 999px; }
+  .nav a svg { width: 19px; height: 19px; }
+  .nav a.active { background: var(--ink); color: var(--paper); }
+
+  /* ── HISTORIE: kalendář z tvarů ─────────────────────────────── */
+  .h-head { margin-top: 18px; }
+  .h-head h2 { font-family: 'Urbanist', sans-serif; font-weight: 900; font-size: 30px; letter-spacing: -.03em; }
+  .h-head p { font-size: 12px; color: var(--sub); margin-top: 3px; font-weight: 300; }
+  .seg { display: flex; gap: 4px; background: var(--mist); border-radius: 999px; padding: 4px; margin-top: 14px; }
+  .seg span { flex: 1; text-align: center; font-family: 'Urbanist', sans-serif; font-size: 11.5px; font-weight: 800; padding: 8px 0; border-radius: 999px; color: var(--faint); }
+  .seg span.on { background: var(--ink); color: var(--paper); }
+
+  .shapecal { margin-top: 16px; background: var(--card); border-radius: 28px; box-shadow: 0 8px 24px -14px rgba(28,26,34,.25); padding: 18px 16px 14px; }
+  .shapecal .wk { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .shapecal .wk:last-of-type { margin-bottom: 0; }
+  .shapecal .wl { width: 32px; font-family: 'Urbanist', sans-serif; font-size: 9.5px; font-weight: 900; color: var(--faint); }
+  .shapecal .cell { width: 32px; height: 32px; display: grid; place-items: center; }
+  .shapecal .cell svg { width: 32px; height: 32px; }
+  .shapecal .now { outline: 2.5px solid var(--ink); outline-offset: 2px; border-radius: 12px; }
+  .shapecal .legend { display: flex; justify-content: center; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--mist); font-size: 9.5px; color: var(--sub); align-items: center; font-weight: 400; }
+  .shapecal .legend svg { width: 15px; height: 15px; vertical-align: -3px; margin-right: 3px; }
+
+  .miles { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .mile { display: flex; align-items: center; gap: 8px; background: var(--card); border-radius: 999px; padding: 8px 14px 8px 9px; box-shadow: 0 6px 18px -10px rgba(28,26,34,.3); font-family: 'Urbanist', sans-serif; font-size: 11px; font-weight: 800; }
+  .mile svg { width: 20px; height: 20px; }
+  .mile.locked { opacity: .4; box-shadow: none; background: var(--mist); }
+
+  .h-stats { margin-top: 16px; display: flex; flex-direction: column; gap: 9px; }
+  .h-stat { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 20px; box-shadow: 0 6px 18px -12px rgba(28,26,34,.3); padding: 11px 16px; }
+  .h-stat .nm2 { flex: 1; font-family: 'Urbanist', sans-serif; font-weight: 800; font-size: 14.5px; letter-spacing: -.01em; }
+  .h-stat .val { font-size: 11px; color: var(--sub); font-weight: 400; }
+  .h-stat .val b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="cookie-mini"><path d="M30.7 16.0L29.5 17.8L27.0 19.0L25.5 19.9L25.9 21.7L26.8 24.3L26.4 26.4L24.3 26.8L21.7 25.9L19.9 25.5L19.0 27.0L17.8 29.5L16.0 30.7L14.2 29.5L13.0 27.0L12.1 25.5L10.3 25.9L7.7 26.8L5.6 26.4L5.2 24.3L6.1 21.7L6.5 19.9L5.0 19.0L2.5 17.8L1.3 16.0L2.5 14.2L5.0 13.0L6.5 12.1L6.1 10.3L5.2 7.7L5.6 5.6L7.7 5.2L10.3 6.1L12.1 6.5L13.0 5.0L14.2 2.5L16.0 1.3L17.8 2.5L19.0 5.0L19.9 6.5L21.7 6.1L24.3 5.2L26.4 5.6L26.8 7.7L25.9 10.3L25.5 12.1L27.0 13.0L29.5 14.2L30.7 16.0Z"/></g>
+</defs></svg>
+
+<div class="intro">
+  <div class="tag">Směr 18 · kolo 7 · z rešerše trendů</div>
+  <h1>Expres</h1>
+  <p>Co je v půlce 2026 nejchytlavější: <b>Material 3 Expressive</b> — morfující tvary, pružinová
+  fyzika místo časovaných animací, přehnaná typografie, tonální bloky barev (Google to podložil
+  výzkumem: „design má vyvolat emoci"). Tohle je vlastní podoba toho jazyka, ne Android klon.
+  Podpis: <b>tvar = stav</b> — splněno je vroubkovaná sušenka, klid pilulka, vynecháno kosočtverec.
+  Den čteš podle siluet, ne jen barev. Hero sušenka se přes den „dopéká" a historie je kalendář
+  z tvarů.</p>
+  <div class="meta">
+    <div><b>Typografie</b>Urbanist · Lexend</div>
+    <div><b>Paleta</b><span class="swatches"><i style="background:#faf6ef"></i><i style="background:#1c1a22"></i><i style="background:#c9f16a"></i><i style="background:#7c6cf6"></i><i style="background:#ff8a3d"></i><i style="background:#f2543d"></i></span></div>
+    <div><b>Podpis</b>tvar = stav · sušenka dne · pružinové morphy</div>
+  </div>
+</div>
+
+<div class="frames">
+
+<!-- ═══ DNES ═══ -->
+<div>
+  <div class="frame-label">Dnes — sušenka se dopéká</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="week-chip">týden 28 · den 6</span>
+    </div>
+
+    <div class="hero">
+      <div class="cookie-wrap">
+        <svg viewBox="0 0 120 120">
+          <clipPath id="third"><path d="M60 60 L60 -10 A70 70 0 0 1 121 95 Z"/></clipPath>
+          <path d="M115.5 60.0L113.8 63.5L109.6 66.5L105.2 69.0L103.0 71.5L103.7 74.8L106.2 79.1L108.3 83.8L108.1 87.8L104.8 89.9L99.7 90.4L94.7 90.4L91.5 91.5L90.4 94.7L90.4 99.7L89.9 104.8L87.8 108.1L83.8 108.3L79.1 106.2L74.8 103.7L71.5 103.0L69.0 105.2L66.5 109.6L63.5 113.8L60.0 115.5L56.5 113.8L53.5 109.6L51.0 105.2L48.5 103.0L45.2 103.7L40.9 106.2L36.2 108.3L32.3 108.1L30.1 104.8L29.6 99.7L29.6 94.7L28.5 91.5L25.3 90.4L20.3 90.4L15.2 89.9L11.9 87.8L11.7 83.8L13.8 79.1L16.3 74.8L17.0 71.5L14.8 69.0L10.4 66.5L6.2 63.5L4.5 60.0L6.2 56.5L10.4 53.5L14.8 51.0L17.0 48.5L16.3 45.2L13.8 40.9L11.7 36.2L11.9 32.3L15.2 30.1L20.3 29.6L25.3 29.6L28.5 28.5L29.6 25.3L29.6 20.3L30.1 15.2L32.2 11.9L36.2 11.7L40.9 13.8L45.2 16.3L48.5 17.0L51.0 14.8L53.5 10.4L56.5 6.2L60.0 4.5L63.5 6.2L66.5 10.4L69.0 14.8L71.5 17.0L74.8 16.3L79.1 13.8L83.8 11.7L87.8 11.9L89.9 15.2L90.4 20.3L90.4 25.3L91.5 28.5L94.7 29.6L99.7 29.6L104.8 30.1L108.1 32.2L108.3 36.2L106.2 40.9L103.7 45.2L103.0 48.5L105.2 51.0L109.6 53.5L113.8 56.5L115.5 60.0Z" fill="#edf6d3" stroke="#dce9b8" stroke-width="2"/>
+          <path d="M115.5 60.0L113.8 63.5L109.6 66.5L105.2 69.0L103.0 71.5L103.7 74.8L106.2 79.1L108.3 83.8L108.1 87.8L104.8 89.9L99.7 90.4L94.7 90.4L91.5 91.5L90.4 94.7L90.4 99.7L89.9 104.8L87.8 108.1L83.8 108.3L79.1 106.2L74.8 103.7L71.5 103.0L69.0 105.2L66.5 109.6L63.5 113.8L60.0 115.5L56.5 113.8L53.5 109.6L51.0 105.2L48.5 103.0L45.2 103.7L40.9 106.2L36.2 108.3L32.3 108.1L30.1 104.8L29.6 99.7L29.6 94.7L28.5 91.5L25.3 90.4L20.3 90.4L15.2 89.9L11.9 87.8L11.7 83.8L13.8 79.1L16.3 74.8L17.0 71.5L14.8 69.0L10.4 66.5L6.2 63.5L4.5 60.0L6.2 56.5L10.4 53.5L14.8 51.0L17.0 48.5L16.3 45.2L13.8 40.9L11.7 36.2L11.9 32.3L15.2 30.1L20.3 29.6L25.3 29.6L28.5 28.5L29.6 25.3L29.6 20.3L30.1 15.2L32.2 11.9L36.2 11.7L40.9 13.8L45.2 16.3L48.5 17.0L51.0 14.8L53.5 10.4L56.5 6.2L60.0 4.5L63.5 6.2L66.5 10.4L69.0 14.8L71.5 17.0L74.8 16.3L79.1 13.8L83.8 11.7L87.8 11.9L89.9 15.2L90.4 20.3L90.4 25.3L91.5 28.5L94.7 29.6L99.7 29.6L104.8 30.1L108.1 32.2L108.3 36.2L106.2 40.9L103.7 45.2L103.0 48.5L105.2 51.0L109.6 53.5L113.8 56.5L115.5 60.0Z" fill="#c9f16a" clip-path="url(#third)"/>
+          <path d="M115.5 60.0L113.8 63.5L109.6 66.5L105.2 69.0L103.0 71.5L103.7 74.8L106.2 79.1L108.3 83.8L108.1 87.8L104.8 89.9L99.7 90.4L94.7 90.4L91.5 91.5L90.4 94.7L90.4 99.7L89.9 104.8L87.8 108.1L83.8 108.3L79.1 106.2L74.8 103.7L71.5 103.0L69.0 105.2L66.5 109.6L63.5 113.8L60.0 115.5L56.5 113.8L53.5 109.6L51.0 105.2L48.5 103.0L45.2 103.7L40.9 106.2L36.2 108.3L32.3 108.1L30.1 104.8L29.6 99.7L29.6 94.7L28.5 91.5L25.3 90.4L20.3 90.4L15.2 89.9L11.9 87.8L11.7 83.8L13.8 79.1L16.3 74.8L17.0 71.5L14.8 69.0L10.4 66.5L6.2 63.5L4.5 60.0L6.2 56.5L10.4 53.5L14.8 51.0L17.0 48.5L16.3 45.2L13.8 40.9L11.7 36.2L11.9 32.3L15.2 30.1L20.3 29.6L25.3 29.6L28.5 28.5L29.6 25.3L29.6 20.3L30.1 15.2L32.2 11.9L36.2 11.7L40.9 13.8L45.2 16.3L48.5 17.0L51.0 14.8L53.5 10.4L56.5 6.2L60.0 4.5L63.5 6.2L66.5 10.4L69.0 14.8L71.5 17.0L74.8 16.3L79.1 13.8L83.8 11.7L87.8 11.9L89.9 15.2L90.4 20.3L90.4 25.3L91.5 28.5L94.7 29.6L99.7 29.6L104.8 30.1L108.1 32.2L108.3 36.2L106.2 40.9L103.7 45.2L103.0 48.5L105.2 51.0L109.6 53.5L113.8 56.5L115.5 60.0Z" fill="none" stroke="#87b32a" stroke-width="2.5"/>
+        </svg>
+        <span class="num">1<small>/3</small></span>
+      </div>
+      <div class="hero-copy">
+        <h2>Sobota<br><em>11. čvc</em></h2>
+        <p><b>Cvičení hotové.</b> Čtení nech na večer — sušenka se dopeče.</p>
+      </div>
+    </div>
+
+    <div class="list">
+
+      <div class="item tonal-lime">
+        <span class="stateshape">
+          <svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/><path d="M10.5 16.5l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">Cvičení</div>
+          <div class="plan">Trénink B — kruhy, lehce · 10 min</div>
+        </div>
+        <span class="state-word done">Sušenka · 9:41</span>
+      </div>
+
+      <div class="item">
+        <span class="stateshape">
+          <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12.5" fill="none" stroke="#aca9b4" stroke-width="2" stroke-dasharray="3.5 4.5"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">Čtení</div>
+          <div class="plan">Zaklínač, kapitola dál · 15 min · večer</div>
+        </div>
+        <span class="shape-legend">
+          <span class="sl"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a" transform="translate(16,16) scale(.62) translate(-16,-16)"/></svg></span>
+          <span class="sl"><svg viewBox="0 0 32 32"><rect x="6" y="11" width="20" height="10" rx="5" fill="#7c6cf6"/></svg></span>
+          <span class="sl"><svg viewBox="0 0 32 32"><rect x="9" y="9" width="14" height="14" rx="4" fill="#f2543d" transform="rotate(45 16 16)"/></svg></span>
+        </span>
+      </div>
+
+      <div class="item tonal-iris">
+        <span class="stateshape">
+          <svg viewBox="0 0 32 32"><rect x="4" y="10" width="24" height="12" rx="6" fill="#7c6cf6"/><path d="M11 16h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </span>
+        <div class="body">
+          <div class="name">QA/AI učení</div>
+          <div class="plan">Playwright den 6 + zápis · 15 min</div>
+        </div>
+        <span class="state-word rest">Pilulka · klid</span>
+      </div>
+
+      <div class="reward">
+        <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.5" r="2.6"/><path d="M10.2 9.2c.4 2.6-.8 4.8-2.2 7h8c-1.4-2.2-2.6-4.4-2.2-7"/><path d="M7 19.5h10"/></svg></span>
+        <span><b>Šachy</b> — bonusový tvar mimo den. Jen když máš chuť.</span>
+      </div>
+
+    </div>
+
+    <div class="say">
+      <label>Věta dne</label>
+      <div class="line">dneska to šlo samo…</div>
+    </div>
+
+    <div class="numbers">
+      <div class="nm lime"><b>6</b><span>dní v řadě</span></div>
+      <div class="nm plain"><b>86&thinsp;%</b><span>týden</span></div>
+      <div class="nm alert"><b>2×</b><span>čtení — zmenšit dávku?</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5.5"/></svg>Dnes</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="4" y="4" width="7" height="7" rx="2.4"/><circle cx="16.5" cy="7.5" r="3.6"/><rect x="4" y="14" width="7" height="6" rx="3"/><rect x="13" y="14" width="7" height="6" rx="2.2" transform="rotate(3 16.5 17)"/></svg>Tvary</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+<!-- ═══ HISTORIE ═══ -->
+<div>
+  <div class="frame-label">Historie — kalendář z tvarů</div>
+  <div class="phone"><div class="screen">
+
+    <div class="top">
+      <span class="word">habit<i>naut</i></span>
+      <span class="week-chip">192 dní</span>
+    </div>
+
+    <div class="h-head">
+      <h2>Kalendář z tvarů</h2>
+      <p>měsíc přečteš podle siluet — i bez barev</p>
+    </div>
+
+    <div class="seg"><span class="on">Tvary</span><span>Kalendář</span><span>Věty</span></div>
+
+    <div class="shapecal">
+      <div class="wk"><span class="wl">T24</span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#a8d354"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#d9d4c8" stroke-width="2" stroke-dasharray="3 4"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#a8d354"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+      </div>
+      <div class="wk"><span class="wl">T25</span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><rect x="6" y="11.5" width="20" height="9" rx="4.5" fill="#b9aefb"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><rect x="9.5" y="9.5" width="13" height="13" rx="3.5" fill="#f8b6a9" transform="rotate(45 16 16)"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#a8d354"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+      </div>
+      <div class="wk"><span class="wl">T26</span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#d9d4c8" stroke-width="2" stroke-dasharray="3 4"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#a8d354"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+      </div>
+      <div class="wk"><span class="wl">T27</span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><rect x="6" y="11.5" width="20" height="9" rx="4.5" fill="#b9aefb"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#a8d354"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+      </div>
+      <div class="wk"><span class="wl">T28</span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><rect x="6" y="11.5" width="20" height="9" rx="4.5" fill="#b9aefb"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg></span>
+        <span class="cell now"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg></span>
+        <span class="cell"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#d9d4c8" stroke-width="2" stroke-dasharray="3 4"/></svg></span>
+      </div>
+      <div class="legend">
+        <span><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#87b32a"/></svg>plný den</span>
+        <span><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dbeeab"/></svg>část</span>
+        <span><svg viewBox="0 0 32 32"><rect x="6" y="11.5" width="20" height="9" rx="4.5" fill="#b9aefb"/></svg>klid</span>
+        <span><svg viewBox="0 0 32 32"><rect x="9.5" y="9.5" width="13" height="13" rx="3.5" fill="#f8b6a9" transform="rotate(45 16 16)"/></svg>vynecháno</span>
+      </div>
+    </div>
+
+    <div class="miles">
+      <span class="mile"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#c9f16a"/></svg>7 dní v řadě</span>
+      <span class="mile"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#c9f16a"/></svg>28 bez „2×"</span>
+      <span class="mile"><svg viewBox="0 0 32 32"><use href="#cookie-mini" fill="#c9f16a"/></svg>Návrat</span>
+      <span class="mile locked"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="none" stroke="#aca9b4" stroke-width="2" stroke-dasharray="3 4"/></svg>30 dní</span>
+      <span class="mile locked"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="none" stroke="#aca9b4" stroke-width="2" stroke-dasharray="3 4"/></svg>100 dní</span>
+    </div>
+
+    <div class="h-stats">
+      <div class="h-stat"><span class="nm2">Cvičení</span><span class="val"><b>12/14</b> · 86 % · řada 9</span></div>
+      <div class="h-stat"><span class="nm2">Čtení</span><span class="val"><b>8/14</b> · 57 % · řada 5</span></div>
+      <div class="h-stat"><span class="nm2">QA/AI</span><span class="val"><b>11/14</b> · 79 % · řada 7</span></div>
+    </div>
+
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5.5"/></svg>Dnes</a>
+      <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="4" y="4" width="7" height="7" rx="2.4"/><circle cx="16.5" cy="7.5" r="3.6"/><rect x="4" y="14" width="7" height="6" rx="3"/><rect x="13" y="14" width="7" height="6" rx="2.2" transform="rotate(3 16.5 17)"/></svg>Tvary</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h8"/></svg>Návyky</a>
+    </nav>
+
+  </div></div>
+</div>
+
+</div>
+</body>
+</html>

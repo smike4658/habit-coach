@@ -258,3 +258,29 @@ překryv popisků kotoučů v 16 a tvrdá hrana koule v 17).
 
 Užší výběr po 6 kolech (podle Michalových reakcí): **3 · 4→17 · 16** (+ nasazená
 Stezka jako současný stav). Rozhoduje Michal.
+
+## 9. Kolo 7 — Expres: z rešerše trendů (2026-07-12)
+
+Mockup: `smer-18.html`. Zadání: „nejdřív zjisti, co je dneska chytlavé/trendy UX,
+pak takovou variantu udělej." Rešerše (trends-2026.md + čerstvý web search 7/2026):
+nejsilnější živý jazyk je **Material 3 Expressive** (Google 2025/26) — 35 tvarů +
+shape-morphing, pružinová fyzika místo časovaných animací, přehnaná typografie,
+tonální bloky; podloženo výzkumem („design má vyvolat emoci", expresivní prvky
+zrychlují orientaci napříč věkem). Drží i dopamine barvy a kinetické titulky.
+
+**Směr 18 — „Expres"** je vlastní podoba toho jazyka (ne Android klon):
+- **Tvar = stav** (podpis): splněno = vroubkovaná sušenka, klid = pilulka,
+  vynecháno = kosočtverec, prázdno = tečkovaný kruh. Den se čte podle SILUET,
+  ne jen barev → přístupnost zdarma, a check-in je pružinový morph kruh→sušenka.
+- **Sušenka dne**: hero tvar se přes den „dopéká" (výseč sytosti roste s check-iny).
+- **Kalendář z tvarů**: historie jako mřížka siluet — nejchytlavější prvek.
+- Milníky = chips se sušenkou; tonální karty (limetka=done, iris=klid); pill nav.
+- Typografie Urbanist 900 (kinetická, těsná) + Lexend; paleta papír/ink/limetka/
+  iris/tangerine/červená.
+
+Pro: nejvíc „2026 teď"; jediný směr s výzkumně podloženým jazykem; tvarový systém
+je vlastní a obhajitelný (M3E má 35 tvarů, naše mapování stavů je unikátní).
+Proti: M3E vlna může za 2–3 roky zestárnout jako každý systémový trend; sušenka
+chce kvalitní morph implementaci (flubber/SVG interpolace), jinak ztratí kouzlo.
+
+**Finální kandidáti po 7 kolech (18 směrů): 3 · 16 · 17 · 18** + nasazená Stezka.
